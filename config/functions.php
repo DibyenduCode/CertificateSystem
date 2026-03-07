@@ -56,3 +56,8 @@ function verify_csrf($token)
 {
     return isset($_SESSION['csrf']) && hash_equals($_SESSION['csrf'],$token);
 }
+
+function generateApiKey()
+{
+    return bin2hex(random_bytes(32));
+}
