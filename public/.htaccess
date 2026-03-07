@@ -1,0 +1,10 @@
+RewriteEngine On
+
+# Remove index.php from URL
+RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s/index\.php
+RewriteRule ^index\.php$ / [R=301,L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+RewriteRule ^(.*)$ index.php [L]
