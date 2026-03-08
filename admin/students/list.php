@@ -1,43 +1,130 @@
 <?php
 
-require_once "../auth_check.php";
-require_once "../../config/database.php";
+require_once __DIR__ . "/../auth_check.php";
+require_once __DIR__ . "/../../config/database.php";
 
 include __DIR__ . "/../partials/header.php";
+include __DIR__ . "/../partials/sidebar.php";
+
+/* SEARCH */
+
+$search = $_GET['search'] ?? '';
+
+$where = "";
+
+$params = [];
+
+if($search){
+
+$where = "WHERE students.name LIKE ? OR students.registration_number LIKE ?";
+
+$params[] = "%$search%";
+$params[] = "%$search%";
+
+}
+
+
+/* PAGINATION */
+
+$limit = 10;
+
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+
+$offset = ($page - 1) * $limit;
+
+
+/* TOTAL COUNT */
+
+$count_sql = "
+SELECT COUNT(*)
+FROM students
+LEFT JOIN courses ON courses.id=students.course_id
+LEFT JOIN mentors ON mentors.id=students.mentor_id
+$where
+";
+
+$stmt = $pdo->prepare($count_sql);
+$stmt->execute($params);
+
+$total_rows = $stmt->fetchColumn();
+
+$total_pages = ceil($total_rows / $limit);
+
+
+/* FETCH STUDENTS */
+
+$sql = "
+SELECT students.*,courses.name AS course,mentors.name AS mentor
+FROM students
+LEFT JOIN courses ON courses.id=students.course_id
+LEFT JOIN mentors ON mentors.id=students.mentor_id
+$where
+ORDER BY students.id DESC
+LIMIT $limit OFFSET $offset
+";
+
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
 
 ?>
 
-<div class="flex">
+<div class="flex-1 flex flex-col">
 
-<?php include __DIR__ . "/../partials/sidebar.php"; ?>
+<header class="bg-white shadow px-6 py-4 flex justify-between items-center">
 
-<div class="flex-1 p-10">
-
-<div class="flex justify-between mb-6">
-
-<h1 class="text-2xl font-bold">Students</h1>
+<h1 class="text-lg font-semibold">
+Students
+</h1>
 
 <a href="add.php"
-class="bg-green-600 text-white px-4 py-2 rounded">
+class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
 
 Add Student
 
 </a>
 
-</div>
+</header>
 
-<table class="w-full bg-white shadow rounded">
 
-<thead class="bg-gray-200">
+<main class="p-6 space-y-4">
+
+<!-- SEARCH BAR -->
+
+<form method="GET" class="flex gap-2 max-w-md">
+
+<input
+type="text"
+name="search"
+value="<?= htmlspecialchars($search) ?>"
+placeholder="Search student..."
+class="flex-1 border rounded px-3 py-2">
+
+<button
+class="bg-blue-600 text-white px-4 py-2 rounded">
+
+Search
+
+</button>
+
+</form>
+
+
+<!-- STUDENTS TABLE -->
+
+<div class="bg-white shadow rounded-lg overflow-hidden">
+
+<table class="w-full text-sm">
+
+<thead class="bg-gray-100 text-gray-600">
 
 <tr>
 
-<th class="p-3">Name</th>
-<th>Course</th>
-<th>Mentor</th>
-<th>Grade</th>
-<th>Registration</th>
-<th>Actions</th>
+<th class="p-3 text-left">Student</th>
+<th class="p-3 text-left">Course</th>
+<th class="p-3 text-left">Mentor</th>
+<th class="p-3 text-left">Grade</th>
+<th class="p-3 text-left">Registration</th>
+<th class="p-3 text-left">Actions</th>
 
 </tr>
 
@@ -45,40 +132,65 @@ Add Student
 
 <tbody>
 
-<?php
+<?php while($row = $stmt->fetch(PDO::FETCH_ASSOC)): ?>
 
-$stmt = $pdo->query("
-SELECT students.*,courses.name AS course,mentors.name AS mentor
-FROM students
-LEFT JOIN courses ON courses.id=students.course_id
-LEFT JOIN mentors ON mentors.id=students.mentor_id
-ORDER BY students.id DESC
-");
+<tr class="border-t hover:bg-gray-50">
 
-while($row = $stmt->fetch(PDO::FETCH_ASSOC)):
+<td class="p-3">
 
-?>
+<div class="font-medium">
 
-<tr class="border-t">
+<?= htmlspecialchars($row['name']) ?>
 
-<td class="p-3"><?= $row['name'] ?></td>
+</div>
 
-<td><?= $row['course'] ?></td>
+</td>
 
-<td><?= $row['mentor'] ?></td>
+<td class="p-3">
 
-<td><?= $row['grade'] ?></td>
+<?= htmlspecialchars($row['course']) ?>
 
-<td><?= $row['registration_number'] ?></td>
+</td>
 
-<td>
+<td class="p-3">
+
+<?= htmlspecialchars($row['mentor']) ?>
+
+</td>
+
+<td class="p-3">
+
+<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">
+
+<?= $row['grade'] ?>
+
+</span>
+
+</td>
+
+<td class="p-3">
+
+<span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-semibold">
+
+<?= $row['registration_number'] ?>
+
+</span>
+
+</td>
+
+
+<td class="p-3 flex gap-2">
 
 <a href="edit.php?id=<?= $row['id'] ?>"
-class="text-blue-600 mr-3">Edit</a>
+class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700">
+
+Edit
+
+</a>
 
 <a href="delete.php?id=<?= $row['id'] ?>"
-class="text-red-600"
-onclick="return confirm('Delete student?')">
+onclick="return confirm('Delete student?')"
+class="bg-red-500 text-white px-3 py-1 rounded text-xs hover:bg-red-600">
 
 Delete
 
@@ -96,6 +208,24 @@ Delete
 
 </div>
 
+
+<!-- PAGINATION -->
+
+<div class="flex gap-2">
+
+<?php for($i=1;$i<=$total_pages;$i++): ?>
+
+<a
+href="?page=<?= $i ?>&search=<?= urlencode($search) ?>"
+class="px-3 py-1 border rounded <?= $i==$page?'bg-blue-600 text-white':'' ?>">
+
+<?= $i ?>
+
+</a>
+
+<?php endfor; ?>
+
 </div>
 
-<?php include __DIR__ . "/../partials/footer.php"; ?>
+
+</main>

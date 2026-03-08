@@ -28,28 +28,57 @@ if($_SERVER['REQUEST_METHOD']=="POST")
 
 <head>
 
+<meta charset="UTF-8">
+<title>Admin Login</title>
+
 <script src="https://cdn.tailwindcss.com"></script>
 
 </head>
 
-<body class="bg-gray-100 flex items-center justify-center h-screen">
+<body class="bg-gradient-to-br from-blue-600 to-indigo-700 min-h-screen flex items-center justify-center">
 
-<form method="POST" class="bg-white p-8 rounded shadow w-96">
+<div class="bg-white shadow-xl rounded-xl w-96 p-8">
 
-<h2 class="text-2xl mb-6">Admin Login</h2>
+<!-- Logo -->
 
-<input name="username" placeholder="Username"
-class="w-full border p-2 mb-4">
+<div class="flex flex-col items-center mb-6">
 
-<input type="password" name="password"
+<img src="../assets/logo.png" class="w-16 h-16 mb-2">
+
+<h1 class="text-xl font-bold text-gray-700">
+Certificate System
+</h1>
+
+<p class="text-gray-400 text-sm">
+Admin Panel
+</p>
+
+</div>
+
+<form method="POST">
+
+<h2 class="text-lg font-semibold text-gray-700 mb-4 text-center">
+Admin Login
+</h2>
+
+<input
+name="username"
+placeholder="Username"
+class="w-full border border-gray-300 rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+<input
+type="password"
+name="password"
 placeholder="Password"
-class="w-full border p-2 mb-4">
+class="w-full border border-gray-300 rounded px-3 py-2 mb-5 focus:outline-none focus:ring-2 focus:ring-blue-500">
 
-<button class="bg-blue-600 text-white px-4 py-2 w-full">
+<button class="bg-blue-600 hover:bg-blue-700 transition text-white px-4 py-2 w-full rounded font-semibold">
 Login
 </button>
 
 </form>
+
+</div>
 
 </body>
 </html>

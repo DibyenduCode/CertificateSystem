@@ -4,60 +4,74 @@ require_once __DIR__ . "/../auth_check.php";
 require_once __DIR__ . "/../../config/database.php";
 
 include __DIR__ . "/../partials/header.php";
+include __DIR__ . "/../partials/sidebar.php";
+
+$stmt = $pdo->query("SELECT * FROM mentors ORDER BY id DESC");
 
 ?>
 
-<div class="flex">
+<div class="flex-1 flex flex-col">
 
-<?php include __DIR__ . "/../partials/sidebar.php"; ?>
+<header class="bg-white shadow px-6 py-4 flex justify-between items-center">
 
-<div class="flex-1 p-10">
-
-<div class="flex justify-between mb-6">
-
-<h1 class="text-2xl font-bold">Mentors</h1>
+<h1 class="text-lg font-semibold">
+Mentors
+</h1>
 
 <a href="add.php"
-class="bg-green-600 text-white px-4 py-2 rounded">
+class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+
 Add Mentor
+
 </a>
 
-</div>
+</header>
 
-<table class="w-full bg-white shadow rounded">
 
-<thead class="bg-gray-200">
+<main class="p-6">
+
+<div class="bg-white shadow rounded-lg overflow-hidden">
+
+<table class="w-full text-sm">
+
+<thead class="bg-gray-100 text-gray-600">
 
 <tr>
-<th class="p-3">Mentor Name</th>
-<th>Actions</th>
+
+<th class="p-3 text-left">Mentor Name</th>
+<th class="p-3 text-left">Actions</th>
+
 </tr>
 
 </thead>
 
 <tbody>
 
-<?php
+<?php while($mentor = $stmt->fetch(PDO::FETCH_ASSOC)): ?>
 
-$stmt = $pdo->query("SELECT * FROM mentors ORDER BY id DESC");
+<tr class="border-t hover:bg-gray-50">
 
-while($mentor = $stmt->fetch(PDO::FETCH_ASSOC)):
+<td class="p-3 font-medium">
 
-?>
+<?= htmlspecialchars($mentor['name']) ?>
 
-<tr class="border-t">
+</td>
 
-<td class="p-3"><?= $mentor['name'] ?></td>
-
-<td>
+<td class="p-3 flex gap-2">
 
 <a href="edit.php?id=<?= $mentor['id'] ?>"
-class="text-blue-600 mr-3">Edit</a>
+class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700">
+
+Edit
+
+</a>
 
 <a href="delete.php?id=<?= $mentor['id'] ?>"
-class="text-red-600"
-onclick="return confirm('Delete mentor?')">
+onclick="return confirm('Delete mentor?')"
+class="bg-red-500 text-white px-3 py-1 rounded text-xs hover:bg-red-600">
+
 Delete
+
 </a>
 
 </td>
@@ -72,6 +86,4 @@ Delete
 
 </div>
 
-</div>
-
-<?php include __DIR__ . "/../partials/footer.php"; ?>
+</main>

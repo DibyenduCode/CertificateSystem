@@ -4,118 +4,78 @@ require_once __DIR__ . "/../auth_check.php";
 require_once __DIR__ . "/../../config/database.php";
 
 include __DIR__ . "/../partials/header.php";
+include __DIR__ . "/../partials/sidebar.php";
+
+$stmt = $pdo->query("SELECT * FROM api_keys ORDER BY id DESC");
 
 ?>
 
-<div class="flex">
+<div class="flex-1 flex flex-col">
 
-<?php include __DIR__ . "/../partials/sidebar.php"; ?>
+<header class="bg-white shadow px-6 py-4 flex justify-between items-center">
 
-<div class="flex-1 p-10">
-
-<div class="flex justify-between mb-6">
-
-<h1 class="text-2xl font-bold">API Keys</h1>
+<h1 class="text-lg font-semibold">
+API Keys
+</h1>
 
 <a href="add.php"
-class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
 
 Generate API Key
 
 </a>
 
-</div>
+</header>
 
 
-<div class="bg-white shadow rounded overflow-x-auto">
+<!-- IMPORTANT flex-1 here -->
+
+<main class="p-6 flex-1">
+
+<div class="bg-white shadow rounded-lg overflow-hidden">
 
 <table class="w-full text-sm">
 
-<thead class="bg-gray-200">
+<thead class="bg-gray-100 text-gray-600">
 
 <tr>
-
 <th class="p-3 text-left">Name</th>
-<th class="text-left">API Key</th>
-<th>Status</th>
-<th>Hits</th>
-<th>Created</th>
-<th>Actions</th>
-
+<th class="p-3 text-left">API Key</th>
+<th class="p-3 text-left">Hits</th>
+<th class="p-3 text-left">Status</th>
+<th class="p-3 text-left">Actions</th>
 </tr>
 
 </thead>
 
 <tbody>
 
-<?php
-
-$stmt = $pdo->query("SELECT * FROM api_keys ORDER BY id DESC");
-
-while($row = $stmt->fetch(PDO::FETCH_ASSOC)):
-
-?>
+<?php while($row = $stmt->fetch(PDO::FETCH_ASSOC)): ?>
 
 <tr class="border-t hover:bg-gray-50">
 
 <td class="p-3">
-
 <?= htmlspecialchars($row['name']) ?>
-
 </td>
 
-<td class="text-xs break-all">
-
-<?= htmlspecialchars($row['api_key']) ?>
-
+<td class="p-3 font-mono text-xs">
+<?= substr($row['api_key'],0,18) ?>...
 </td>
 
-<td>
-
-<?php if($row['status'] == "active"): ?>
-
-<span class="text-green-600 font-semibold">
-
-Active
-
-</span>
-
-<?php else: ?>
-
-<span class="text-red-600 font-semibold">
-
-Inactive
-
-</span>
-
-<?php endif; ?>
-
-</td>
-
-<td>
-
+<td class="p-3">
+<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">
 <?= $row['hit_count'] ?>
-
+</span>
 </td>
 
-<td>
-
-<?= $row['created_at'] ?>
-
+<td class="p-3">
+<?= $row['status'] ?>
 </td>
 
-<td class="space-x-3">
-
-<a href="toggle.php?id=<?= $row['id'] ?>"
-class="text-yellow-600 hover:underline">
-
-Toggle
-
-</a>
+<td class="p-3 flex gap-2">
 
 <a href="delete.php?id=<?= $row['id'] ?>"
-class="text-red-600 hover:underline"
-onclick="return confirm('Delete this API Key?')">
+class="bg-red-500 text-white px-3 py-1 rounded text-xs">
 
 Delete
 
@@ -133,8 +93,4 @@ Delete
 
 </div>
 
-</div>
-
-</div>
-
-<?php include __DIR__ . "/../partials/footer.php"; ?>
+</main>

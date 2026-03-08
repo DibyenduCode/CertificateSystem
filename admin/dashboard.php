@@ -1,23 +1,12 @@
 <?php
 
-require_once "auth_check.php";
-require_once "../config/database.php";
+require_once __DIR__ . "/auth_check.php";
+require_once __DIR__ . "/../config/database.php";
 
-include "partials/header.php";
+include __DIR__ . "/partials/header.php";
+include __DIR__ . "/partials/sidebar.php";
 
-?>
-
-<div class="flex">
-
-<?php include "partials/sidebar.php"; ?>
-
-<div class="flex-1 p-10">
-
-<h1 class="text-3xl font-bold mb-8">
-Admin Dashboard
-</h1>
-
-<?php
+/* Dashboard stats */
 
 $total_students = $pdo->query("SELECT COUNT(*) FROM students")->fetchColumn();
 $total_courses = $pdo->query("SELECT COUNT(*) FROM courses")->fetchColumn();
@@ -26,54 +15,67 @@ $total_api = $pdo->query("SELECT COUNT(*) FROM api_keys")->fetchColumn();
 
 ?>
 
-<div class="grid grid-cols-4 gap-6">
+<div class="flex-1 flex flex-col">
 
-<div class="bg-white p-6 rounded shadow">
+<!-- Top Header -->
 
-<h2 class="text-gray-600">
-Total Students
-</h2>
+<header class="bg-white shadow px-6 py-4 flex justify-between items-center">
 
-<p class="text-3xl font-bold mt-2">
+<h1 class="text-lg font-semibold text-gray-700">
+Dashboard
+</h1>
+
+<span class="text-sm text-gray-500">
+Admin Panel
+</span>
+
+</header>
+
+
+<main class="p-6 space-y-6">
+
+<!-- STAT CARDS -->
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+<div class="bg-white shadow rounded-lg p-6">
+
+<p class="text-sm text-gray-500">Total Students</p>
+
+<p class="text-3xl font-bold text-blue-600 mt-2">
 <?= $total_students ?>
 </p>
 
 </div>
 
 
-<div class="bg-white p-6 rounded shadow">
+<div class="bg-white shadow rounded-lg p-6">
 
-<h2 class="text-gray-600">
-Total Courses
-</h2>
+<p class="text-sm text-gray-500">Courses</p>
 
-<p class="text-3xl font-bold mt-2">
+<p class="text-3xl font-bold text-blue-600 mt-2">
 <?= $total_courses ?>
 </p>
 
 </div>
 
 
-<div class="bg-white p-6 rounded shadow">
+<div class="bg-white shadow rounded-lg p-6">
 
-<h2 class="text-gray-600">
-Total Mentors
-</h2>
+<p class="text-sm text-gray-500">Mentors</p>
 
-<p class="text-3xl font-bold mt-2">
+<p class="text-3xl font-bold text-blue-600 mt-2">
 <?= $total_mentors ?>
 </p>
 
 </div>
 
 
-<div class="bg-white p-6 rounded shadow">
+<div class="bg-white shadow rounded-lg p-6">
 
-<h2 class="text-gray-600">
-API Keys
-</h2>
+<p class="text-sm text-gray-500">API Keys</p>
 
-<p class="text-3xl font-bold mt-2">
+<p class="text-3xl font-bold text-blue-600 mt-2">
 <?= $total_api ?>
 </p>
 
@@ -82,22 +84,32 @@ API Keys
 </div>
 
 
-<div class="mt-10 bg-white p-6 rounded shadow">
+<!-- RECENT STUDENTS -->
 
-<h2 class="text-xl font-semibold mb-4">
+<div class="bg-white shadow rounded-lg">
+
+<div class="p-4 border-b">
+
+<h2 class="font-semibold text-gray-700">
 Recent Students
 </h2>
 
-<table class="w-full border">
+</div>
 
-<thead>
 
-<tr class="bg-gray-200">
+<div class="overflow-x-auto">
 
-<th class="p-2">Name</th>
-<th>Course</th>
-<th>Grade</th>
-<th>Registration</th>
+<table class="w-full text-sm">
+
+<thead class="bg-gray-100 text-gray-600">
+
+<tr>
+
+<th class="p-3 text-left">Name</th>
+<th class="p-3 text-left">Course</th>
+<th class="p-3 text-left">Mentor</th>
+<th class="p-3 text-left">Grade</th>
+<th class="p-3 text-left">Registration</th>
 
 </tr>
 
@@ -108,10 +120,10 @@ Recent Students
 <?php
 
 $stmt = $pdo->query("
-SELECT students.name,students.grade,students.registration_number,
-courses.name AS course
+SELECT students.*,courses.name AS course,mentors.name AS mentor
 FROM students
-LEFT JOIN courses ON courses.id=students.course_id
+LEFT JOIN courses ON courses.id = students.course_id
+LEFT JOIN mentors ON mentors.id = students.mentor_id
 ORDER BY students.id DESC
 LIMIT 5
 ");
@@ -120,12 +132,17 @@ while($row = $stmt->fetch(PDO::FETCH_ASSOC)):
 
 ?>
 
-<tr class="border-t">
+<tr class="border-t hover:bg-gray-50">
 
-<td class="p-2"><?= $row['name'] ?></td>
-<td><?= $row['course'] ?></td>
-<td><?= $row['grade'] ?></td>
-<td><?= $row['registration_number'] ?></td>
+<td class="p-3"><?= htmlspecialchars($row['name']) ?></td>
+
+<td class="p-3"><?= htmlspecialchars($row['course']) ?></td>
+
+<td class="p-3"><?= htmlspecialchars($row['mentor']) ?></td>
+
+<td class="p-3"><?= htmlspecialchars($row['grade']) ?></td>
+
+<td class="p-3"><?= $row['registration_number'] ?></td>
 
 </tr>
 
@@ -139,6 +156,6 @@ while($row = $stmt->fetch(PDO::FETCH_ASSOC)):
 
 </div>
 
-</div>
 
-<?php include "partials/footer.php"; ?>
+</main>
+

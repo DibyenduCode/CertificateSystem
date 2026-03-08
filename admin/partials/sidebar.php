@@ -1,53 +1,56 @@
-<?php require_once __DIR__ . "/../../config/config.php"; ?>
+<div class="w-64 bg-blue-700 text-white flex flex-col">
 
-<div class="w-64 bg-gray-900 text-white min-h-screen p-6">
+<div class="p-6 border-b border-blue-500">
 
-<h2 class="text-2xl font-bold mb-8">Certificate Admin</h2>
+<h2 class="text-xl font-bold">
+Certificate Admin
+</h2>
 
-<ul class="space-y-4">
+</div>
 
-<li>
+<nav class="flex-1 p-4 space-y-2">
+
 <a href="<?= BASE_URL ?>/admin/dashboard.php"
-class="block hover:text-green-400">
+class="block px-4 py-2 rounded hover:bg-blue-600">
 Dashboard
 </a>
-</li>
 
-<li>
 <a href="<?= BASE_URL ?>/admin/students/list.php"
-class="block hover:text-green-400">
+class="block px-4 py-2 rounded hover:bg-blue-600">
 Students
 </a>
-</li>
 
-<li>
 <a href="<?= BASE_URL ?>/admin/courses/list.php"
-class="block hover:text-green-400">
+class="block px-4 py-2 rounded hover:bg-blue-600">
 Courses
 </a>
-</li>
 
-<li>
 <a href="<?= BASE_URL ?>/admin/mentors/list.php"
-class="block hover:text-green-400">
+class="block px-4 py-2 rounded hover:bg-blue-600">
 Mentors
 </a>
-</li>
 
-<li>
 <a href="<?= BASE_URL ?>/admin/api_keys/list.php"
-class="block hover:text-green-400">
+class="block px-4 py-2 rounded hover:bg-blue-600">
 API Keys
 </a>
-</li>
 
-<li>
-<a href="<?= BASE_URL ?>/admin/logout.php"
-class="block text-red-400 hover:text-red-500">
-Logout
+<a href="<?= BASE_URL ?>/admin/profile.php"
+class="block px-4 py-2 rounded hover:bg-blue-600">
+Profile
 </a>
-</li>
 
-</ul>
+</nav>
+
+<div class="p-4 border-t border-blue-500">
+
+<a href="<?= BASE_URL ?>/admin/logout.php"
+class="block text-center bg-red-500 hover:bg-red-600 py-2 rounded">
+
+Logout
+
+</a>
+
+</div>
 
 </div>

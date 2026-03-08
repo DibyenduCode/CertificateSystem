@@ -3,23 +3,22 @@
 require_once __DIR__ . "/../auth_check.php";
 require_once __DIR__ . "/../../config/database.php";
 
-/* get student id safely */
+$id = (int)$_GET['id'];
 
-$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$stmt = $pdo->prepare("SELECT * FROM students WHERE id=?");
+$stmt->execute([$id]);
+$student = $stmt->fetch();
 
-if(!$id){
-    die("Invalid Student ID");
+if(!$student){
+die("Student not found");
 }
-
-
-/* update student */
 
 if($_SERVER['REQUEST_METHOD']=="POST")
 {
 
 $stmt = $pdo->prepare("
 UPDATE students
-SET name=?, gender=?, course_id=?, mentor_id=?, dob=?, start_date=?, end_date=?, grade=?
+SET name=?,gender=?,course_id=?,mentor_id=?,dob=?,start_date=?,end_date=?,grade=?
 WHERE id=?
 ");
 
@@ -40,151 +39,136 @@ exit;
 
 }
 
-
-/* fetch student */
-
-$stmt = $pdo->prepare("SELECT * FROM students WHERE id=?");
-$stmt->execute([$id]);
-$student = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if(!$student){
-    die("Student not found");
-}
-
-
-/* fetch courses */
-
-$courses = $pdo->query("SELECT * FROM courses ORDER BY name ASC")->fetchAll();
-
-
-/* fetch mentors */
-
-$mentors = $pdo->query("SELECT * FROM mentors ORDER BY name ASC")->fetchAll();
-
+$courses = $pdo->query("SELECT * FROM courses")->fetchAll();
+$mentors = $pdo->query("SELECT * FROM mentors")->fetchAll();
 
 include __DIR__ . "/../partials/header.php";
+include __DIR__ . "/../partials/sidebar.php";
 
 ?>
 
-<div class="flex">
+<div class="flex-1 flex flex-col">
 
-<?php include __DIR__ . "/../partials/sidebar.php"; ?>
+<header class="bg-white shadow px-6 py-4">
+<h1 class="text-lg font-semibold">Edit Student</h1>
+</header>
 
-<div class="flex-1 p-10">
+<main class="p-6">
 
-<h1 class="text-2xl font-bold mb-6">Edit Student</h1>
+<form method="POST" class="bg-white shadow rounded-lg p-8 max-w-4xl">
 
+<h2 class="text-xl font-semibold mb-6">Student Information</h2>
 
-<form method="POST" class="bg-white p-6 shadow rounded max-w-lg">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-
-<!-- NAME -->
-
-<input
-name="name"
+<div>
+<label class="block text-sm mb-1">Student Name</label>
+<input type="text" name="name"
 value="<?= htmlspecialchars($student['name']) ?>"
-placeholder="Student Name"
-class="w-full border p-2 mb-3">
+class="w-full border rounded px-3 py-2">
+</div>
 
+<div>
+<label class="block text-sm mb-1">Gender</label>
+<select name="gender" class="w-full border rounded px-3 py-2">
 
-<!-- GENDER -->
+<option value="Male"
+<?= $student['gender']=="Male"?'selected':'' ?>>Male</option>
 
-<select name="gender" class="w-full border p-2 mb-3">
-
-<option value="Male" <?= $student['gender']=="Male"?'selected':'' ?>>
-Male
-</option>
-
-<option value="Female" <?= $student['gender']=="Female"?'selected':'' ?>>
-Female
-</option>
+<option value="Female"
+<?= $student['gender']=="Female"?'selected':'' ?>>Female</option>
 
 </select>
+</div>
 
+<div>
+<label class="block text-sm mb-1">Course</label>
+<select name="course" class="w-full border rounded px-3 py-2">
 
-<!-- COURSE -->
+<?php foreach($courses as $c): ?>
 
-<select name="course" class="w-full border p-2 mb-3">
+<option value="<?= $c['id'] ?>"
+<?= $student['course_id']==$c['id']?'selected':'' ?>>
 
-<?php foreach($courses as $course): ?>
-
-<option value="<?= $course['id'] ?>"
-<?= $student['course_id']==$course['id'] ? 'selected' : '' ?>>
-
-<?= htmlspecialchars($course['name']) ?>
+<?= $c['name'] ?>
 
 </option>
 
 <?php endforeach; ?>
 
 </select>
+</div>
 
+<div>
+<label class="block text-sm mb-1">Mentor</label>
+<select name="mentor" class="w-full border rounded px-3 py-2">
 
-<!-- MENTOR -->
+<?php foreach($mentors as $m): ?>
 
-<select name="mentor" class="w-full border p-2 mb-3">
+<option value="<?= $m['id'] ?>"
+<?= $student['mentor_id']==$m['id']?'selected':'' ?>>
 
-<?php foreach($mentors as $mentor): ?>
-
-<option value="<?= $mentor['id'] ?>"
-<?= $student['mentor_id']==$mentor['id'] ? 'selected' : '' ?>>
-
-<?= htmlspecialchars($mentor['name']) ?>
+<?= $m['name'] ?>
 
 </option>
 
 <?php endforeach; ?>
 
 </select>
+</div>
+
+</div>
 
 
-<!-- DOB -->
+<h2 class="text-xl font-semibold mt-10 mb-6">
+Course Duration
+</h2>
 
-<input
-type="date"
-name="dob"
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+<div>
+<label class="block text-sm mb-1">Date of Birth</label>
+<input type="date" name="dob"
 value="<?= $student['dob'] ?>"
-class="w-full border p-2 mb-3">
+class="w-full border rounded px-3 py-2">
+</div>
 
-
-<!-- START DATE -->
-
-<input
-type="date"
-name="start_date"
+<div>
+<label class="block text-sm mb-1">Start Date</label>
+<input type="date" name="start_date"
 value="<?= $student['start_date'] ?>"
-class="w-full border p-2 mb-3">
+class="w-full border rounded px-3 py-2">
+</div>
 
-
-<!-- END DATE -->
-
-<input
-type="date"
-name="end_date"
+<div>
+<label class="block text-sm mb-1">End Date</label>
+<input type="date" name="end_date"
 value="<?= $student['end_date'] ?>"
-class="w-full border p-2 mb-3">
+class="w-full border rounded px-3 py-2">
+</div>
+
+</div>
 
 
-<!-- GRADE -->
+<div class="mt-6 max-w-sm">
 
-<input
-name="grade"
-value="<?= htmlspecialchars($student['grade']) ?>"
-placeholder="Grade"
-class="w-full border p-2 mb-4">
+<label class="block text-sm mb-1">Grade</label>
+
+<input type="text" name="grade"
+value="<?= $student['grade'] ?>"
+class="w-full border rounded px-3 py-2">
+
+</div>
 
 
-<button
-class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 w-full rounded">
+<div class="mt-8">
 
+<button class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
 Update Student
-
 </button>
+
+</div>
 
 </form>
 
-</div>
-
-</div>
-
-<?php include __DIR__ . "/../partials/footer.php"; ?>
+</main>
