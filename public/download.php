@@ -5,6 +5,7 @@ require_once "../config/functions.php";
 require_once "../vendor/autoload.php";
 
 use Dompdf\Dompdf;
+use Dompdf\Options;
 
 $reg = $_GET['reg'];
 
@@ -32,12 +33,37 @@ include "../templates/certificate-template.php";
 
 $html = ob_get_clean();
 
-$dompdf = new Dompdf();
+
+
+/* ---------- DOMPDF OPTIONS ---------- */
+
+$options = new Options();
+
+$options->set('isHtml5ParserEnabled', true);
+$options->set('isRemoteEnabled', true);
+$options->set('defaultFont', 'DejaVu Serif');
+
+$dompdf = new Dompdf($options);
+
+
+/* ---------- LOAD HTML ---------- */
 
 $dompdf->loadHtml($html);
 
-$dompdf->setPaper("A4","landscape");
+
+/* ---------- A4 LANDSCAPE ---------- */
+
+$dompdf->setPaper('A4', 'landscape');
+
+
+
+/* ---------- RENDER PDF ---------- */
 
 $dompdf->render();
 
-$dompdf->stream("certificate.pdf",["Attachment"=>1]);
+
+/* ---------- DOWNLOAD ---------- */
+
+$dompdf->stream("certificate.pdf", [
+    "Attachment" => true
+]);
