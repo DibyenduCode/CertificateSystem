@@ -30,6 +30,16 @@ class="block px-4 py-2 rounded hover:bg-blue-600">
 Mentors
 </a>
 
+<a href="<?= BASE_URL ?>/admin/organizations/list.php"
+class="block px-4 py-2 rounded hover:bg-blue-600">
+Organizations
+</a>
+
+<a href="<?= BASE_URL ?>/admin/institutes/list.php"
+class="block px-4 py-2 rounded hover:bg-blue-600">
+Institutes
+</a>
+
 <a href="<?= BASE_URL ?>/admin/api_keys/list.php"
 class="block px-4 py-2 rounded hover:bg-blue-600">
 API Keys
