@@ -2,6 +2,11 @@
 
 require_once "../config/database.php";
 
+$data = null;
+
+if($_SERVER['REQUEST_METHOD']=="POST")
+{
+
 $reg = $_POST['registration_number'];
 $dob = $_POST['dob'];
 
@@ -17,6 +22,8 @@ $stmt->execute([$reg,$dob]);
 
 $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -24,118 +31,80 @@ $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
 <head>
 
-<meta charset="UTF-8">
 <title>Certificate Verification</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 
-<style>
-
-/* verified badge animation */
-
-@keyframes pop{
-0%{transform:scale(0)}
-70%{transform:scale(1.2)}
-100%{transform:scale(1)}
-}
-
-.verified-badge{
-animation:pop .6s ease;
-}
-
-/* card animation */
-
-@keyframes fadeIn{
-from{
-opacity:0;
-transform:translateY(30px);
-}
-to{
-opacity:1;
-transform:translateY(0);
-}
-}
-
-.card{
-animation:fadeIn .8s ease;
-}
-
-/* logo animation */
-
-.logo{
-animation:pulse 3s infinite;
-}
-
-/* download button */
-
-.download-btn:hover{
-transform:scale(1.05);
-box-shadow:0 10px 20px rgba(0,0,0,0.2);
-}
-
-</style>
-
 </head>
 
-<body class="bg-gradient-to-r from-blue-600 to-blue-500 min-h-screen flex items-center justify-center px-4">
+<body class="bg-gray-100">
+
+<div class="max-w-xl mx-auto mt-16 bg-white p-8 shadow rounded">
+
+<h1 class="text-2xl font-bold mb-6 text-center">
+
+Certificate Verification
+
+</h1>
+
+<form method="POST" class="space-y-4">
+
+<div>
+
+<label class="block text-sm mb-1">
+Registration Number
+</label>
+
+<input
+type="text"
+name="registration_number"
+class="w-full border p-2 rounded"
+required>
+
+</div>
+
+<div>
+
+<label class="block text-sm mb-1">
+Date of Birth
+</label>
+
+<input
+type="date"
+name="dob"
+class="w-full border p-2 rounded"
+required>
+
+</div>
+
+<button
+class="w-full bg-blue-600 text-white py-2 rounded">
+
+Verify Certificate
+
+</button>
+
+</form>
+
 
 <?php if($data): ?>
 
-<div class="card bg-white shadow-2xl rounded-xl p-10 w-full max-w-xl text-center">
+<div class="mt-8 border-t pt-6">
 
-<!-- LOGO -->
+<p><b>Name:</b> <?= $data['name'] ?></p>
 
-<div class="flex justify-center mb-6">
+<p><b>Course:</b> <?= $data['course'] ?></p>
 
-<img src="../assets/logo.png" class="h-16 logo">
+<p><b>Mentor:</b> <?= $data['mentor'] ?></p>
 
-</div>
+<p><b>Grade:</b> <?= $data['grade'] ?></p>
 
-<!-- VERIFIED BADGE -->
+<div class="mt-4">
 
-<div class="flex justify-center mb-6">
-
-<div class="verified-badge bg-green-100 text-green-700 px-6 py-2 rounded-full text-lg font-bold shadow">
-
-✔ VERIFIED
-
-</div>
-
-</div>
-
-<h2 class="text-2xl font-bold text-gray-800 mb-6">
-
-Certificate Verified Successfully
-
-</h2>
-
-
-<!-- CERTIFICATE DETAILS -->
-
-<div class="bg-gray-50 border rounded-lg p-6 text-left space-y-2">
-
-<p><strong>Name:</strong> <?= htmlspecialchars($data['name']) ?></p>
-
-<p><strong>Course:</strong> <?= htmlspecialchars($data['course']) ?></p>
-
-<p><strong>Mentor:</strong> <?= htmlspecialchars($data['mentor']) ?></p>
-
-<p><strong>Grade:</strong> <?= htmlspecialchars($data['grade']) ?></p>
-
-<p><strong>Registration Number:</strong> <?= $data['registration_number'] ?></p>
-
-<p><strong>Certificate Number:</strong> <?= $data['certificate_number'] ?></p>
-
-</div>
-
-
-<!-- DOWNLOAD BUTTON -->
-
-<div class="mt-8">
-
-<a href="download.php?reg=<?= $data['registration_number'] ?>"
-
-class="download-btn bg-blue-600 text-white px-6 py-3 rounded-lg transition">
+<a
+href="download.php?cert=<?= $data['certificate_number'] ?>"
+target="_blank"
+class="bg-green-600 text-white px-4 py-2 rounded">
 
 Download Certificate
 
@@ -145,26 +114,15 @@ Download Certificate
 
 </div>
 
+<?php elseif($_SERVER['REQUEST_METHOD']=="POST"): ?>
 
-<?php else: ?>
-
-<div class="bg-white shadow-xl rounded-lg p-10 text-center">
-
-<h2 class="text-2xl font-bold text-red-600">
-
+<p class="text-red-600 mt-6">
 Certificate Not Found
-
-</h2>
-
-<p class="text-gray-500 mt-3">
-
-Please check the registration number and date of birth.
-
 </p>
 
-</div>
-
 <?php endif; ?>
+
+</div>
 
 </body>
 
