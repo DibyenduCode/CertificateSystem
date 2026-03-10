@@ -11,27 +11,21 @@ include __DIR__ . "/../partials/sidebar.php";
 $search = $_GET['search'] ?? '';
 
 $where = "";
-
 $params = [];
 
 if($search){
 
 $where = "WHERE students.name LIKE ? OR students.registration_number LIKE ?";
-
 $params[] = "%$search%";
 $params[] = "%$search%";
 
 }
 
-
 /* PAGINATION */
 
 $limit = 10;
-
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-
 $offset = ($page - 1) * $limit;
-
 
 /* TOTAL COUNT */
 
@@ -47,17 +41,24 @@ $stmt = $pdo->prepare($count_sql);
 $stmt->execute($params);
 
 $total_rows = $stmt->fetchColumn();
-
 $total_pages = ceil($total_rows / $limit);
-
 
 /* FETCH STUDENTS */
 
 $sql = "
-SELECT students.*,courses.name AS course,mentors.name AS mentor
+SELECT students.*,
+courses.name AS course,
+mentors.name AS mentor,
+organizations.name AS organization,
+institutes.name AS institute
+
 FROM students
+
 LEFT JOIN courses ON courses.id=students.course_id
 LEFT JOIN mentors ON mentors.id=students.mentor_id
+LEFT JOIN organizations ON organizations.id=students.organization_id
+LEFT JOIN institutes ON institutes.id=students.institute_id
+
 $where
 ORDER BY students.id DESC
 LIMIT $limit OFFSET $offset
@@ -72,23 +73,18 @@ $stmt->execute($params);
 
 <header class="bg-white shadow px-6 py-4 flex justify-between items-center">
 
-<h1 class="text-lg font-semibold">
-Students
-</h1>
+<h1 class="text-lg font-semibold">Students</h1>
 
 <a href="add.php"
 class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-
 Add Student
-
 </a>
 
 </header>
 
-
 <main class="p-6 space-y-4">
 
-<!-- SEARCH BAR -->
+<!-- SEARCH -->
 
 <form method="GET" class="flex gap-2 max-w-md">
 
@@ -101,13 +97,10 @@ class="flex-1 border rounded px-3 py-2">
 
 <button
 class="bg-blue-600 text-white px-4 py-2 rounded">
-
 Search
-
 </button>
 
 </form>
-
 
 <!-- STUDENTS TABLE -->
 
@@ -121,6 +114,7 @@ Search
 
 <th class="p-3 text-left">Student</th>
 <th class="p-3 text-left">Course</th>
+<th class="p-3 text-left">Institute</th>
 <th class="p-3 text-left">Mentor</th>
 <th class="p-3 text-left">Grade</th>
 <th class="p-3 text-left">Registration</th>
@@ -139,31 +133,31 @@ Search
 <td class="p-3">
 
 <div class="font-medium">
-
 <?= htmlspecialchars($row['name']) ?>
+</div>
 
+<div class="text-xs text-gray-500">
+<?= htmlspecialchars($row['organization']) ?>
 </div>
 
 </td>
 
 <td class="p-3">
-
 <?= htmlspecialchars($row['course']) ?>
-
 </td>
 
 <td class="p-3">
+<?= htmlspecialchars($row['institute']) ?>
+</td>
 
+<td class="p-3">
 <?= htmlspecialchars($row['mentor']) ?>
-
 </td>
 
 <td class="p-3">
 
 <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">
-
 <?= $row['grade'] ?>
-
 </span>
 
 </td>
@@ -171,15 +165,20 @@ Search
 <td class="p-3">
 
 <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-semibold">
-
 <?= $row['registration_number'] ?>
-
 </span>
 
 </td>
 
-
 <td class="p-3 flex gap-2">
+
+<button
+onclick="toggleDetails(<?= $row['id'] ?>)"
+class="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-700">
+
+Details
+
+</button>
 
 <a href="edit.php?id=<?= $row['id'] ?>"
 class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700">
@@ -200,6 +199,60 @@ Delete
 
 </tr>
 
+<!-- EXPANDABLE DETAILS -->
+
+<tr id="details-<?= $row['id'] ?>" class="hidden bg-gray-50">
+
+<td colspan="7" class="p-4">
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+
+<div>
+<b>Father Name</b><br>
+<?= htmlspecialchars($row['father_name']) ?>
+</div>
+
+<div>
+<b>Organization</b><br>
+<?= htmlspecialchars($row['organization']) ?>
+</div>
+
+<div>
+<b>Institute</b><br>
+<?= htmlspecialchars($row['institute']) ?>
+</div>
+
+<div>
+<b>DOB</b><br>
+<?= $row['dob'] ?>
+</div>
+
+<div>
+<b>Start Date</b><br>
+<?= $row['start_date'] ?>
+</div>
+
+<div>
+<b>End Date</b><br>
+<?= $row['end_date'] ?>
+</div>
+
+<div>
+<b>Issue Date</b><br>
+<?= $row['issue_date'] ?>
+</div>
+
+<div>
+<b>Certificate No</b><br>
+<?= $row['certificate_number'] ?>
+</div>
+
+</div>
+
+</td>
+
+</tr>
+
 <?php endwhile; ?>
 
 </tbody>
@@ -207,7 +260,6 @@ Delete
 </table>
 
 </div>
-
 
 <!-- PAGINATION -->
 
@@ -227,5 +279,18 @@ class="px-3 py-1 border rounded <?= $i==$page?'bg-blue-600 text-white':'' ?>">
 
 </div>
 
-
 </main>
+
+</div>
+
+<script>
+
+function toggleDetails(id){
+
+let row = document.getElementById("details-"+id);
+
+row.classList.toggle("hidden");
+
+}
+
+</script>

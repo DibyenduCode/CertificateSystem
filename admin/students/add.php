@@ -10,31 +10,149 @@ if($_SERVER['REQUEST_METHOD']=="POST")
 {
 
 $name = trim($_POST['name']);
+$father = trim($_POST['father_name']);
 $gender = $_POST['gender'];
+
 $course = $_POST['course'];
 $mentor = $_POST['mentor'];
+
+$organization = $_POST['organization'];
+$institute = $_POST['institute'];
+
 $dob = $_POST['dob'];
 $start = $_POST['start_date'];
 $end = $_POST['end_date'];
-$grade = $_POST['grade'];
+$issue = $_POST['issue_date'];
+
+$grade = trim($_POST['grade']);
+
+
+/* =========================
+   VALIDATION
+========================= */
 
 if(!$name){
 $errors[]="Student name is required.";
 }
 
-if(empty($errors)){
+if(!$father){
+$errors[]="Father name is required.";
+}
 
-$registration = generateRegistrationNumber($pdo);
+if(!$dob){
+$errors[]="Date of birth is required.";
+}
+
+if(!$start){
+$errors[]="Course start date is required.";
+}
+
+if(!$end){
+$errors[]="Course end date is required.";
+}
+
+if(!$issue){
+$errors[]="Issue date is required.";
+}
+
+
+/* =========================
+   IMAGE UPLOAD
+========================= */
+
+$photo = null;
+
+if(isset($_FILES['photo']) && $_FILES['photo']['error'] === 0){
+
+$allowed = ['jpg','jpeg','png'];
+
+$ext = strtolower(pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION));
+
+if(!in_array($ext,$allowed)){
+
+$errors[]="Only JPG, JPEG, PNG images allowed.";
+
+}
+
+elseif($_FILES['photo']['size'] > 1024*1024){
+
+$errors[]="Image must be smaller than 1MB.";
+
+}
+
+else{
+
+$tempRegistration = generateRegistrationNumber($pdo);
+
+$filename = $tempRegistration.".jpg";
+
+$destination = __DIR__ . "/../../uploads/students/".$filename;
+
+$result = compressStudentImage(
+$_FILES['photo']['tmp_name'],
+$destination
+);
+
+if(!$result){
+
+$errors[]="Image processing failed.";
+
+}else{
+
+$photo = $filename;
+
+}
+
+}
+
+}
+
+
+/* =========================
+   NORMALIZE DATES
+========================= */
+
+$dob = $dob ?: null;
+$start = $start ?: null;
+$end = $end ?: null;
+$issue = $issue ?: null;
+
+
+/* =========================
+   INSERT STUDENT
+========================= */
+
+if(empty($errors))
+{
+
+$registration = $tempRegistration ?? generateRegistrationNumber($pdo);
 $certificate = generateCertificateNumber($pdo);
 
 $stmt = $pdo->prepare("
 INSERT INTO students
-(name,gender,registration_number,certificate_number,course_id,mentor_id,dob,start_date,end_date,grade)
-VALUES (?,?,?,?,?,?,?,?,?,?)
+(name,father_name,gender,registration_number,certificate_number,
+course_id,mentor_id,organization_id,institute_id,
+dob,start_date,end_date,issue_date,grade,student_photo)
+
+VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 ");
 
 $stmt->execute([
-$name,$gender,$registration,$certificate,$course,$mentor,$dob,$start,$end,$grade
+$name,
+$father,
+$gender,
+$registration,
+$certificate,
+$course,
+$mentor,
+$organization,
+$institute,
+$dob,
+$start,
+$end,
+$issue,
+$grade,
+$photo
 ]);
 
 header("Location: list.php");
@@ -44,8 +162,16 @@ exit;
 
 }
 
+
+/* =========================
+   FETCH DROPDOWN DATA
+========================= */
+
 $courses = $pdo->query("SELECT * FROM courses")->fetchAll();
 $mentors = $pdo->query("SELECT * FROM mentors")->fetchAll();
+$organizations = $pdo->query("SELECT * FROM organizations")->fetchAll();
+$institutes = $pdo->query("SELECT * FROM institutes")->fetchAll();
+
 
 include __DIR__ . "/../partials/header.php";
 include __DIR__ . "/../partials/sidebar.php";
@@ -73,7 +199,8 @@ include __DIR__ . "/../partials/sidebar.php";
 <?php endif; ?>
 
 
-<form method="POST" class="bg-white shadow rounded-lg p-8 max-w-4xl">
+<form method="POST" enctype="multipart/form-data"
+class="bg-white shadow rounded-lg p-8 max-w-4xl">
 
 <h2 class="text-xl font-semibold mb-6">Student Information</h2>
 
@@ -81,20 +208,69 @@ include __DIR__ . "/../partials/sidebar.php";
 
 <div>
 <label class="block text-sm mb-1">Student Name</label>
-<input type="text" name="name" required class="w-full border rounded px-3 py-2">
+<input type="text" name="name" required
+class="w-full border rounded px-3 py-2">
+</div>
+
+<div>
+<label class="block text-sm mb-1">Father / Mother Name</label>
+<input type="text" name="father_name" required
+class="w-full border rounded px-3 py-2">
 </div>
 
 <div>
 <label class="block text-sm mb-1">Gender</label>
-<select name="gender" class="w-full border rounded px-3 py-2">
+<select name="gender"
+class="w-full border rounded px-3 py-2">
+
 <option value="Male">Male</option>
 <option value="Female">Female</option>
+
+</select>
+</div>
+
+<div>
+<label class="block text-sm mb-1">Student Photo</label>
+<input type="file" name="photo"
+class="w-full border rounded px-3 py-2">
+</div>
+
+<div>
+<label class="block text-sm mb-1">Organization</label>
+<select name="organization"
+class="w-full border rounded px-3 py-2">
+
+<?php foreach($organizations as $o): ?>
+
+<option value="<?= $o['id'] ?>">
+<?= $o['name'] ?>
+</option>
+
+<?php endforeach; ?>
+
+</select>
+</div>
+
+<div>
+<label class="block text-sm mb-1">Institute</label>
+<select name="institute"
+class="w-full border rounded px-3 py-2">
+
+<?php foreach($institutes as $i): ?>
+
+<option value="<?= $i['id'] ?>">
+<?= $i['name'] ?>
+</option>
+
+<?php endforeach; ?>
+
 </select>
 </div>
 
 <div>
 <label class="block text-sm mb-1">Course</label>
-<select name="course" class="w-full border rounded px-3 py-2">
+<select name="course"
+class="w-full border rounded px-3 py-2">
 
 <?php foreach($courses as $c): ?>
 
@@ -109,7 +285,8 @@ include __DIR__ . "/../partials/sidebar.php";
 
 <div>
 <label class="block text-sm mb-1">Mentor</label>
-<select name="mentor" class="w-full border rounded px-3 py-2">
+<select name="mentor"
+class="w-full border rounded px-3 py-2">
 
 <?php foreach($mentors as $m): ?>
 
@@ -133,28 +310,41 @@ Course Duration
 
 <div>
 <label class="block text-sm mb-1">Date of Birth</label>
-<input type="date" name="dob" class="w-full border rounded px-3 py-2">
+<input type="date" name="dob" required
+class="w-full border rounded px-3 py-2">
 </div>
 
 <div>
 <label class="block text-sm mb-1">Start Date</label>
-<input type="date" name="start_date" class="w-full border rounded px-3 py-2">
+<input type="date" name="start_date" required
+class="w-full border rounded px-3 py-2">
 </div>
 
 <div>
 <label class="block text-sm mb-1">End Date</label>
-<input type="date" name="end_date" class="w-full border rounded px-3 py-2">
-</div>
-
-</div>
-
-
-<div class="mt-6 max-w-sm">
-
-<label class="block text-sm mb-1">Grade</label>
-
-<input type="text" name="grade" placeholder="Example: A"
+<input type="date" name="end_date" required
 class="w-full border rounded px-3 py-2">
+</div>
+
+</div>
+
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+
+<div>
+<label class="block text-sm mb-1">Issue Date</label>
+<input type="date"
+name="issue_date"
+value="<?= date('Y-m-d') ?>"
+required
+class="w-full border rounded px-3 py-2">
+</div>
+
+<div>
+<label class="block text-sm mb-1">Grade</label>
+<input type="text" name="grade"
+class="w-full border rounded px-3 py-2">
+</div>
 
 </div>
 
@@ -170,3 +360,5 @@ Save Student
 </form>
 
 </main>
+
+</div>

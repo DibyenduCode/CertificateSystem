@@ -130,3 +130,78 @@ function generateApiKey()
     return bin2hex(random_bytes(32));
 
 }
+
+
+
+/* ------------------------------------------------
+   Image Compress
+------------------------------------------------ */
+
+function compressStudentImage($source,$destination)
+{
+
+$info = getimagesize($source);
+
+if(!$info){
+return false;
+}
+
+$width = $info[0];
+$height = $info[1];
+
+$max_width = 300;
+
+if($width > $max_width){
+
+$ratio = $width / $max_width;
+
+$new_width = $max_width;
+$new_height = $height / $ratio;
+
+}else{
+
+$new_width = $width;
+$new_height = $height;
+
+}
+
+$image_p = imagecreatetruecolor($new_width,$new_height);
+
+switch($info['mime']){
+
+case 'image/jpeg':
+$image = imagecreatefromjpeg($source);
+break;
+
+case 'image/png':
+$image = imagecreatefrompng($source);
+break;
+
+default:
+return false;
+
+}
+
+imagecopyresampled(
+$image_p,
+$image,
+0,
+0,
+0,
+0,
+$new_width,
+$new_height,
+$width,
+$height
+);
+
+/* save as compressed jpg */
+
+imagejpeg($image_p,$destination,75);
+
+imagedestroy($image);
+imagedestroy($image_p);
+
+return true;
+
+}

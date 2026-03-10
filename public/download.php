@@ -13,11 +13,22 @@ die("Invalid Certificate");
 }
 
 $stmt = $pdo->prepare("
-SELECT students.*,courses.name AS course,mentors.name AS mentor
+
+SELECT students.*,
+courses.name AS course,
+mentors.name AS mentor,
+organizations.name AS organization,
+institutes.name AS institute
+
 FROM students
+
 LEFT JOIN courses ON courses.id = students.course_id
 LEFT JOIN mentors ON mentors.id = students.mentor_id
+LEFT JOIN organizations ON organizations.id = students.organization_id
+LEFT JOIN institutes ON institutes.id = students.institute_id
+
 WHERE certificate_number=?
+
 ");
 
 $stmt->execute([$cert]);
@@ -28,12 +39,8 @@ if(!$student){
 die("Certificate Not Found");
 }
 
-/* FIX: provide variables for template */
-
 $data = $student;
 $title = genderTitle($student['gender']);
-
-/* generate certificate */
 
 ob_start();
 
