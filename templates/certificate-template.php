@@ -83,6 +83,37 @@ object-fit:cover;
 
 }
 
+/* QR code */
+
+.qr{
+
+position:absolute;
+right:40mm;
+bottom:20mm;
+
+width:28mm;
+height:28mm;
+
+text-align:center;
+
+}
+
+.qr img{
+
+width:100%;
+height:100%;
+
+}
+
+.qr span{
+
+display:block;
+margin-top:2mm;
+font-size:9px;
+font-weight:bold;
+
+}
+
 </style>
 
 
@@ -152,6 +183,21 @@ $student_photo = "data:image/".$type.";base64," . base64_encode($image_data);
 <?php } ?>
 
 </div>
+
+
+<!-- QR Code -->
+
+<?php if(!empty($qr_code_url)): ?>
+
+<div class="qr">
+
+<img src="<?= $qr_code_url ?>" alt="Verify Certificate QR">
+
+<span>Verify</span>
+
+</div>
+
+<?php endif; ?>
 
 
 </div>

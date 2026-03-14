@@ -2,6 +2,7 @@
 
 require_once "../config/database.php";
 require_once "../config/functions.php";
+require_once "../config/config.php";
 require_once "../vendor/autoload.php";
 
 use Dompdf\Dompdf;
@@ -73,6 +74,9 @@ $institute = $student['institute'];
 
 $registration_number = $student['registration_number'];
 $certificate_number = $student['certificate_number'];
+
+$verify_url = BASE_URL . "/public/verify.php?cert=" . urlencode($certificate_number);
+$qr_code_url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" . urlencode($verify_url);
 
 $start_date = $student['start_date'];
 $end_date = $student['end_date'];

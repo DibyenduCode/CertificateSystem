@@ -4,7 +4,25 @@ require_once "../config/database.php";
 
 $data = null;
 
-if($_SERVER['REQUEST_METHOD']=="POST")
+$cert = $_GET['cert'] ?? null;
+
+if($cert)
+{
+
+$stmt = $pdo->prepare("
+SELECT students.*,courses.name AS course,mentors.name AS mentor
+FROM students
+LEFT JOIN courses ON courses.id = students.course_id
+LEFT JOIN mentors ON mentors.id = students.mentor_id
+WHERE certificate_number=?
+");
+
+$stmt->execute([$cert]);
+
+$data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+}
+elseif($_SERVER['REQUEST_METHOD']=="POST")
 {
 
 $reg = $_POST['registration_number'];
@@ -98,6 +116,7 @@ Verify Certificate
 <p><b>Mentor:</b> <?= $data['mentor'] ?></p>
 
 <p><b>Grade:</b> <?= $data['grade'] ?></p>
+<p><b>Certificate No:</b> <?= $data['certificate_number'] ?></p>
 
 <div class="mt-4">
 
@@ -114,7 +133,7 @@ Download Certificate
 
 </div>
 
-<?php elseif($_SERVER['REQUEST_METHOD']=="POST"): ?>
+<?php elseif($_SERVER['REQUEST_METHOD']=="POST" || $cert): ?>
 
 <p class="text-red-600 mt-6">
 Certificate Not Found
