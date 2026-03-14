@@ -1,9 +1,9 @@
 RewriteEngine On
 
-# Do NOT rewrite admin, api, assets, config, vendor, templates
-RewriteCond %{REQUEST_URI} ^/certificate-system/(admin|api|assets|config|vendor|templates) [NC]
-RewriteRule ^ - [L]
+# Only redirect the root URL to public
+RewriteRule ^$ public/ [L]
 
-# Redirect root to public
-RewriteCond %{REQUEST_URI} !^/certificate-system/public/
+# Allow normal access to other folders/files
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ public/$1 [L]

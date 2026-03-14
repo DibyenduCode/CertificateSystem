@@ -2,152 +2,156 @@
 
 @page{
 size:A4 landscape;
-margin:6mm;
+margin:0;
 }
 
 body{
 margin:0;
-font-family: DejaVu Serif, serif;
-text-align:center;
+font-family: DejaVu Sans, sans-serif;
 }
 
-.wrapper{
-width:100%;
-}
+/* main certificate container */
 
 .certificate{
 
-padding:38mm;
+position:relative;
 
-border:3mm solid #2f6edb;
+width:297mm;
+height:210mm;
 
-background:#f5f8ff;
-
-box-sizing:border-box;
+background-image:url('https://dibyendu.in/certificate-bg.png');
+background-size:cover;
+background-position:center;
 
 }
 
-.logo img{
-height:42px;
-}
 
-.title{
-font-size:32px;
-color:#2f6edb;
+/* registration line */
+
+.regline{
+
+position:absolute;
+
+top:103mm;
+left:20mm;
+right:20mm;
+
+font-size:15px;
 font-weight:bold;
-margin-top:4px;
+
 }
 
-.subtitle{
-font-size:14px;
-margin-top:4px;
+
+/* paragraph text */
+
+.text{
+
+position:absolute;
+
+top:120mm;
+left:40mm;
+right:90mm;
+
+font-size:15px;
+line-height:1.7;
+
 }
 
-.name{
-font-size:26px;
-font-weight:bold;
-margin:10px 0;
+
+/* student photo */
+
+.photo{
+
+position:absolute;
+
+top:115mm;
+right:40mm;
+
+width:35mm;
+height:40mm;
+
+border:1px solid #aaa;
+overflow:hidden;
+
 }
 
-.course{
-font-size:18px;
-color:#2f6edb;
-}
+.photo img{
 
-.info{
 width:100%;
-margin-top:14px;
-font-size:12px;
-}
+height:100%;
+object-fit:cover;
 
-.info td{
-padding:3px;
-}
-
-.signature{
-margin-top:18px;
-}
-
-.signature img{
-height:40px;
-}
-
-.footer{
-margin-top:6px;
-font-size:10px;
 }
 
 </style>
 
 
 
-<div class="wrapper">
-
 <div class="certificate">
 
-<div class="logo">
-<img src="../assets/logo.png">
-</div>
+<!-- Registration + Certificate Number -->
 
-<div class="title">
-CERTIFICATE OF COMPLETION
-</div>
+<div class="regline">
 
-<div class="subtitle">
-This certificate is proudly presented to
-</div>
+Registration No: <?= htmlspecialchars($registration_number) ?>
 
-<div class="name">
-<?= $title ?> <?= $data['name'] ?>
-</div>
-
-<div class="subtitle">
-for successfully completing the course
-</div>
-
-<div class="course">
-<?= $data['course'] ?>
-</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
 
-<table class="info">
 
-<tr>
-<td><b>Mentor:</b> <?= $data['mentor'] ?></td>
-<td align="right"><b>Grade:</b> <?= $data['grade'] ?></td>
-</tr>
-
-<tr>
-<td><b>Registration:</b> <?= $data['registration_number'] ?></td>
-<td align="right"><b>Certificate:</b> <?= $data['certificate_number'] ?></td>
-</tr>
-
-<tr>
-<td colspan="2" align="center">
-<b>Duration:</b> <?= $data['start_date'] ?> – <?= $data['end_date'] ?>
-</td>
-</tr>
-
-</table>
-
-
-<div class="signature">
-
-<img src="../assets/signature.png">
-
-<br>
-
-<b>Exam Controller</b>
+Certificate No: <?= htmlspecialchars($certificate_number) ?>
 
 </div>
 
 
-<div class="footer">
 
-This certificate verifies that the above named individual has successfully completed the course requirements.
+<!-- Certificate Text -->
+
+<div class="text">
+
+<?= $title ?> <?= htmlspecialchars($student_name) ?>
+
+<?= $data['gender']=="Male" ? "S/O" : "D/O" ?>
+
+<?= htmlspecialchars($father_name) ?>
+
+has successfully completed the course
+
+<b><?= htmlspecialchars($course) ?></b>
+
+from <?= htmlspecialchars($institute) ?>
+
+under the training program of
+
+<b><?= htmlspecialchars($organization) ?></b>. Duration: <?= htmlspecialchars($duration) ?> Performance: <b><?= htmlspecialchars($grade) ?></b> Training Period: <?= htmlspecialchars($training_period) ?> This certificate is awarded on <b><?= date("d M Y",strtotime($issue_date)) ?></b>
+</div>
+
+
+
+<!-- Student Photo -->
+
+<div class="photo">
+
+<?php
+
+$photo_file = __DIR__ . "/../uploads/students/" . $data['student_photo'];
+
+if(!empty($data['student_photo']) && file_exists($photo_file))
+{
+
+$type = pathinfo($photo_file, PATHINFO_EXTENSION);
+
+$image_data = file_get_contents($photo_file);
+
+$student_photo = "data:image/".$type.";base64," . base64_encode($image_data);
+
+?>
+
+<img src="<?= $student_photo ?>">
+
+<?php } ?>
 
 </div>
 
-</div>
 
 </div>

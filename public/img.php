@@ -1,0 +1,1 @@
+<img src="../uploads/students/BPLF260000007.jpg">
