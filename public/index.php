@@ -68,7 +68,7 @@ box-shadow:0 10px 20px rgba(0,0,0,0.2);
 
 <div class="flex justify-center mb-6">
 
-<img src="../assets/logo.png" class="h-16 logo">
+<img src="certificate-system/assets/logo.png" class="h-16 logo">
 
 </div>
 

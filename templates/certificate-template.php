@@ -19,7 +19,7 @@ position:relative;
 width:297mm;
 height:210mm;
 
-background-image:url('https://dibyendu.in/certificate-bg.png');
+background-image:url('/admin/assets/certificate-bg.png');
 background-size:cover;
 background-position:center;
 
@@ -88,7 +88,7 @@ object-fit:cover;
 .qr{
 
 position:absolute;
-right:40mm;
+right:200mm;
 bottom:20mm;
 
 width:28mm;
@@ -102,7 +102,6 @@ text-align:center;
 
 width:100%;
 height:100%;
-
 }
 
 .qr span{
