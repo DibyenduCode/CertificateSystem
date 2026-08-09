@@ -94,75 +94,75 @@ if (!empty($subjects)) {
             box-sizing: border-box;
         }
 
-        /* STUDENT IDENTITY OVERLAYS (Positioned cleanly next to pre-printed labels) */
+        /* STUDENT IDENTITY OVERLAYS (Precise positions matching background template labels) */
         .lbl-student-name {
             position: absolute;
-            top: 95mm;
-            left: 81mm;
-            font-size: 13.5px;
+            top: 96mm;
+            left: 62mm;
+            font-size: 12px;
             font-weight: bold;
             color: #000000;
         }
 
         .lbl-reg-no {
             position: absolute;
-            top: 100.5mm;
-            left: 86mm;
-            font-size: 13.5px;
+            top: 101.5mm;
+            left: 64mm;
+            font-size: 12px;
             font-weight: bold;
             color: #000000;
         }
 
         .lbl-course {
             position: absolute;
-            top: 106mm;
-            left: 81mm;
-            width: 85mm;
-            font-size: 13px;
+            top: 107mm;
+            left: 60mm;
+            width: 105mm;
+            font-size: 11px;
             font-weight: bold;
             color: #000000;
-            line-height: 1.2;
+            line-height: 1.15;
         }
 
         .lbl-center {
             position: absolute;
-            top: 95mm;
-            left: 218mm;
-            width: 52mm;
-            font-size: 13px;
+            top: 96mm;
+            left: 208mm;
+            width: 58mm;
+            font-size: 11px;
             font-weight: bold;
             color: #000000;
-            line-height: 1.2;
+            line-height: 1.15;
         }
 
         .lbl-date {
             position: absolute;
-            top: 100.5mm;
-            left: 230mm;
-            font-size: 13.5px;
+            top: 101.5mm;
+            left: 220mm;
+            font-size: 12px;
             font-weight: bold;
             color: #000000;
         }
 
-        /* SUBJECTS AND MARKS TABLE OVERLAY */
+        /* SUBJECTS AND MARKS TABLE OVERLAY (DATA AREA: top 136mm to 148mm) */
         .table-rows-container {
             position: absolute;
-            top: 132mm;
+            top: 135.5mm;
             left: 28mm;
             width: 241mm;
-            font-size: 12px;
+            font-size: 10px;
             color: #000000;
         }
 
         .subject-row {
-            height: 5.5mm;
-            line-height: 5.5mm;
+            height: 4.2mm;
+            line-height: 4.2mm;
             clear: both;
         }
 
         .col-subjects {
             float: left;
-            width: 142mm;
+            width: 140mm;
             font-weight: bold;
             white-space: nowrap;
             overflow: hidden;
@@ -171,45 +171,49 @@ if (!empty($subjects)) {
 
         .col-theory {
             float: left;
-            width: 27mm;
+            width: 28mm;
             text-align: center;
             font-weight: bold;
-            font-size: 13px;
+            font-size: 11px;
         }
 
         .col-practical {
             float: left;
-            width: 27mm;
+            width: 30mm;
             text-align: center;
             font-weight: bold;
-            font-size: 13px;
+            font-size: 11px;
         }
 
         .col-obtained {
             float: left;
-            width: 45mm;
+            width: 43mm;
             text-align: center;
             font-weight: bold;
-            font-size: 13px;
+            font-size: 11px;
         }
 
-        /* SUMMARY ROW OVERLAY */
+        /* SUMMARY ROW OVERLAY (Pre-printed summary bar at top 149mm - 156mm) */
         .lbl-total-obtained {
             position: absolute;
-            top: 156.5mm;
-            left: 226mm;
-            font-size: 13.5px;
+            top: 150.5mm;
+            left: 214mm;
+            width: 12mm;
+            font-size: 12px;
             font-weight: bold;
             color: #000000;
+            text-align: center;
         }
 
         .lbl-percentage {
             position: absolute;
-            top: 156.5mm;
-            left: 272mm;
-            font-size: 13.5px;
+            top: 150.5mm;
+            left: 254mm;
+            width: 14mm;
+            font-size: 12px;
             font-weight: bold;
             color: #000000;
+            text-align: center;
         }
     </style>
 </head>
@@ -238,7 +242,7 @@ if (!empty($subjects)) {
             $per_subject_theory = (int)ceil($theory_marks / $num_subjects);
             $per_subject_prac   = (int)ceil($practical_marks / $num_subjects);
 
-            foreach (array_slice($clean_subjects, 0, 5) as $idx => $subj_name):
+            foreach (array_slice($clean_subjects, 0, 3) as $idx => $subj_name):
                 $sub_theory = min(100, $per_subject_theory);
                 $sub_prac   = min(100, $per_subject_prac);
                 $sub_total  = $sub_theory + $sub_prac;
@@ -263,7 +267,7 @@ if (!empty($subjects)) {
         <?php endif; ?>
     </div>
 
-    <!-- TOTAL MARKS & PERCENTAGE OVERLAY -->
+    <!-- TOTAL MARKS & PERCENTAGE OVERLAY (Positioned inside bottom summary row) -->
     <div class="lbl-total-obtained"><?= $total_obtained ?></div>
     <div class="lbl-percentage"><?= $percentage ?>%</div>
 
