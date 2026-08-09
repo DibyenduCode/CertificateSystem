@@ -9,6 +9,7 @@ include __DIR__ . "/partials/sidebar.php";
 /* Dashboard Metrics - Fetch conditionally based on module permissions */
 $total_students   = has_permission('students')   ? $pdo->query("SELECT COUNT(*) FROM students")->fetchColumn() : 0;
 $total_courses    = has_permission('courses')    ? $pdo->query("SELECT COUNT(*) FROM courses")->fetchColumn() : 0;
+$total_subjects   = (has_permission('subjects') || has_permission('courses')) ? $pdo->query("SELECT COUNT(*) FROM subjects")->fetchColumn() : 0;
 $total_institutes = has_permission('institutes') ? $pdo->query("SELECT COUNT(*) FROM institutes")->fetchColumn() : 0;
 $total_mentors    = has_permission('mentors')    ? $pdo->query("SELECT COUNT(*) FROM mentors")->fetchColumn() : 0;
 $active_api_keys  = has_permission('api_keys')   ? $pdo->query("SELECT COUNT(*) FROM api_keys WHERE status='active'")->fetchColumn() : 0;
@@ -66,6 +67,19 @@ $active_api_keys  = has_permission('api_keys')   ? $pdo->query("SELECT COUNT(*) 
                     </div>
                     <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl font-bold group-hover:bg-emerald-600 group-hover:text-white transition">
                         <i class="fas fa-book-open"></i>
+                    </div>
+                </a>
+            <?php endif; ?>
+
+            <!-- Subjects -->
+            <?php if (has_permission('subjects') || has_permission('courses')): ?>
+                <a href="<?= BASE_URL ?>/admin/subjects/list.php" class="bg-white rounded-xl shadow-sm border border-slate-200/80 p-5 flex items-center justify-between hover:shadow-md hover:border-indigo-300 transition group">
+                    <div>
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider group-hover:text-indigo-600 transition">Subjects</p>
+                        <h3 class="text-2xl font-bold text-slate-800 mt-1"><?= number_format($total_subjects) ?></h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl font-bold group-hover:bg-indigo-600 group-hover:text-white transition">
+                        <i class="fas fa-layer-group"></i>
                     </div>
                 </a>
             <?php endif; ?>

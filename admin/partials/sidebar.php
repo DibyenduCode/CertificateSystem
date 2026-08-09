@@ -37,13 +37,20 @@ function is_active($path) {
             </a>
         <?php endif; ?>
 
-        <?php if (has_permission('courses') || has_permission('mentors') || has_permission('institutes')): ?>
+        <?php if (has_permission('courses') || has_permission('subjects') || has_permission('mentors') || has_permission('institutes')): ?>
             <div class="pt-3 px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Academic Setup</div>
 
             <?php if (has_permission('courses')): ?>
                 <a href="<?= BASE_URL ?>/admin/courses/list.php" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150 <?= is_active('courses/') ?>">
                     <i class="fas fa-book-open w-4 text-center"></i>
                     <span>Courses</span>
+                </a>
+            <?php endif; ?>
+
+            <?php if (has_permission('subjects') || has_permission('courses')): ?>
+                <a href="<?= BASE_URL ?>/admin/subjects/list.php" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150 <?= is_active('subjects/') ?>">
+                    <i class="fas fa-layer-group w-4 text-center"></i>
+                    <span>Subjects</span>
                 </a>
             <?php endif; ?>
 

@@ -15,12 +15,54 @@ if (!empty($bg_image_base64)) {
         $bg_base64 = 'data:image/' . $type . ';base64,' . base64_encode($imgData);
     }
 }
+
+$registration_number = $registration_number ?? ($data['registration_number'] ?? '');
+$certificate_number  = $certificate_number ?? ($data['certificate_number'] ?? '');
+$issue_date          = $issue_date ?? ($data['issue_date'] ?? date('Y-m-d'));
+$gender              = $data['gender'] ?? 'Male';
+
+// Ensure Title has a dot (e.g. Mr. or Ms.)
+$raw_title = $title ?? (function_exists('genderTitle') ? genderTitle($gender) : ($gender === 'Female' ? 'Ms.' : 'Mr.'));
+$title = trim($raw_title);
+if ($title !== '' && !str_ends_with($title, '.')) {
+    $title .= '.';
+}
+
+$student_name        = strtoupper($student_name ?? ($data['name'] ?? ''));
+$father_name         = strtoupper($father_name ?? ($data['father_name'] ?? ''));
+$course              = strtoupper($course ?? ($data['course'] ?? ''));
+$institute           = strtoupper($institute ?? ($data['institute'] ?? ''));
+$theory_m = (int)($data['theory_marks'] ?? 0);
+$prac_m   = (int)($data['practical_marks'] ?? 0);
+$computed_grade = function_exists('calculateGrade') ? calculateGrade($theory_m, $prac_m) : 'VERY GOOD';
+$grade_input = trim($grade ?? ($data['grade'] ?? ''));
+if (empty($grade_input) || in_array(strtoupper($grade_input), ['PASS', 'A+', 'A', 'B', 'C', 'DEFAULT'])) {
+    $grade = $computed_grade;
+} else {
+    $grade = strtoupper($grade_input);
+}
+
+$start_d = $data['start_date'] ?? 'now';
+$end_d   = $data['end_date'] ?? 'now';
+$training_period = date('F Y', strtotime($start_d)) . ' to ' . date('F Y', strtotime($end_d));
+
+$award_date = date('d/m/Y', strtotime($issue_date));
+$relation   = ($gender === 'Female') ? 'Daughter of' : 'Son of';
+$pronoun    = ($gender === 'Female') ? 'She' : 'He';
+$possessive = ($gender === 'Female') ? 'her' : 'his';
+
+// Format father name with Mr. prefix if needed
+if (!empty($father_name) && !str_starts_with($father_name, 'MR.') && !str_starts_with($father_name, 'MS.')) {
+    $father_display = 'Mr. ' . $father_name;
+} else {
+    $father_display = $father_name;
+}
 ?>
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Certificate - <?= htmlspecialchars($certificate_number ?? '') ?></title>
+    <title>Certificate - <?= htmlspecialchars($certificate_number) ?></title>
     <style>
         @page {
             size: A4 landscape;
@@ -32,8 +74,8 @@ if (!empty($bg_image_base64)) {
             width: 297mm;
             height: 210mm;
             overflow: hidden;
-            font-family: 'DejaVu Sans', sans-serif;
-            color: #1e293b;
+            font-family: 'Helvetica Neue', Helvetica, Arial, 'DejaVu Sans', sans-serif;
+            color: #000000;
             background-color: #ffffff;
         }
 
@@ -53,212 +95,124 @@ if (!empty($bg_image_base64)) {
             width: 297mm;
             height: 210mm;
             box-sizing: border-box;
-            padding: 12mm 18mm 10mm 18mm;
-            overflow: hidden;
-            background: transparent;
         }
 
-        /* Top Right Metadata (Reg No, Cert No, Date) */
-        .meta-number {
-            font-family: 'DejaVu Sans Mono', monospace;
-            font-size: 9.5px;
-            color: #1e293b;
-            text-align: right;
-            line-height: 1.4;
-            float: right;
-            margin-top: 4mm;
-            margin-right: 4mm;
-        }
-
-        /* Certificate Content Area (positioned in open middle section) */
-        .cert-content {
-            margin-top: 42mm;
-            text-align: center;
-        }
-
-        .cert-subtitle {
-            font-size: 11px;
-            color: #475569;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 3mm;
-            font-weight: 600;
-        }
-
-        .student-name {
-            font-size: 24px;
-            font-weight: bold;
-            color: #1e3a8a;
-            display: inline-block;
-            border-bottom: 2px solid #d97706;
-            padding: 0 15px 2px 15px;
-            margin: 1mm 0 3mm 0;
-        }
-
-        .body-text {
-            font-size: 13px;
-            line-height: 1.75;
-            color: #334155;
-            padding: 0 15mm;
-        }
-
-        .highlight {
-            font-weight: bold;
-            color: #0f172a;
-        }
-
-        .course-name {
-            font-size: 16px;
-            font-weight: bold;
-            color: #1e3a8a;
-            margin: 1mm 0;
-        }
-
-        /* Bottom Row Table for Photo, QR Code, Signatures */
-        .bottom-table {
+        /* Regd. No and Certificate No Row */
+        .numbers-row {
             position: absolute;
-            bottom: 12mm;
+            top: 103mm;
             left: 18mm;
             width: 261mm;
-            border-collapse: collapse;
+            font-size: 14px;
+            font-weight: normal;
+            color: #000000;
+        }
+        .regd-no {
+            float: left;
+        }
+        .cert-no {
+            float: right;
         }
 
-        .bottom-table td {
-            vertical-align: bottom;
+        /* Main Body Text Container */
+        .body-container {
+            position: absolute;
+            top: 111mm;
+            left: 18mm;
+            width: 220mm;
+            font-size: 14px;
+            line-height: 1.65;
+            color: #000000;
+            text-align: justify;
         }
 
-        .photo-box {
-            width: 25mm;
-            height: 30mm;
-            border: 1px solid #cbd5e1;
-            padding: 1mm;
+        .bi {
+            font-weight: bold;
+            font-style: italic;
+        }
+
+        .b {
+            font-weight: bold;
+        }
+
+        .award-line {
+            margin-top: 3.5mm;
+            font-size: 14px;
+        }
+
+        /* Student Photo Box on Right */
+        .photo-box-wrapper {
+            position: absolute;
+            top: 113.5mm;
+            right: 18mm;
+            width: 27mm;
+            height: 33mm;
+            border: 1px solid #000000;
             background: #ffffff;
             text-align: center;
         }
-        .photo-box img {
+        .photo-box-wrapper img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
-        .qr-box {
-            text-align: center;
+        /* QR Code Box at Bottom Left */
+        .qr-code-wrapper {
+            position: absolute;
+            top: 155mm;
+            left: 18mm;
+            width: 27mm;
+            height: 27mm;
         }
-        .qr-box img {
-            width: 22mm;
-            height: 22mm;
-            border: 1px solid #cbd5e1;
-            padding: 1mm;
-            background: #ffffff;
-        }
-        .qr-label {
-            font-size: 7.5px;
-            color: #64748b;
-            margin-top: 1mm;
-            font-weight: bold;
-        }
-
-        .signature-box {
-            text-align: center;
-            width: 48mm;
-        }
-        .sig-line {
-            border-top: 1.5px solid #64748b;
-            margin-top: 8mm;
-            padding-top: 1.5mm;
-            font-size: 10.5px;
-            font-weight: bold;
-            color: #1e293b;
-        }
-        .sig-title {
-            font-size: 8.5px;
-            color: #64748b;
-            text-transform: uppercase;
+        .qr-code-wrapper img {
+            width: 100%;
+            height: 100%;
         }
     </style>
 </head>
 <body>
 
-<?php
-$registration_number = $registration_number ?? ($data['registration_number'] ?? '');
-$certificate_number  = $certificate_number ?? ($data['certificate_number'] ?? '');
-$issue_date          = $issue_date ?? ($data['issue_date'] ?? date('Y-m-d'));
-$title               = $title ?? (function_exists('genderTitle') ? genderTitle($data['gender'] ?? 'Male') : 'Mr.');
-$student_name        = $student_name ?? ($data['name'] ?? '');
-$father_name         = $father_name ?? ($data['father_name'] ?? '');
-$course              = $course ?? ($data['course'] ?? '');
-$institute           = $institute ?? ($data['institute'] ?? '');
-$grade               = $grade ?? ($data['grade'] ?? 'Pass');
-$training_period     = $training_period ?? (date("d M Y", strtotime($data['start_date'] ?? 'now')) . " – " . date("d M Y", strtotime($data['end_date'] ?? 'now')));
-
-if (!empty($bg_base64)): ?>
+<?php if (!empty($bg_base64)): ?>
     <img src="<?= $bg_base64 ?>" class="cert-bg-img" alt="Certificate Background">
 <?php endif; ?>
 
 <div class="cert-container">
 
-    <!-- TOP RIGHT METADATA -->
-    <div class="meta-number">
-        <div><strong>Reg No:</strong> <?= htmlspecialchars($registration_number) ?></div>
-        <div><strong>Cert No:</strong> <?= htmlspecialchars($certificate_number) ?></div>
-        <div><strong>Issue Date:</strong> <?= date("d M Y", strtotime($issue_date)) ?></div>
+    <!-- REGD NO AND CERTIFICATE NO OVERLAY -->
+    <div class="numbers-row">
+        <div class="regd-no">Regd. No. : <?= htmlspecialchars($registration_number) ?></div>
+        <div class="cert-no">Certificate No: <?= htmlspecialchars($certificate_number) ?></div>
     </div>
 
-    <div style="clear: both;"></div>
-
-    <!-- MAIN CERTIFICATE TEXT CONTENT -->
-    <div class="cert-content">
-        <div class="cert-subtitle">This is to proudly certify that</div>
+    <!-- MAIN DYNAMIC BODY PARAGRAPH -->
+    <div class="body-container">
+        This is to certify that <span class="bi"><?= htmlspecialchars($title ? $title . ' ' : '') ?><?= htmlspecialchars($student_name) ?>, <?= $relation ?> <?= htmlspecialchars($father_display) ?></span>, has successfully completed the <span class="bi"><?= htmlspecialchars($course) ?></span> conducted at our authorised study center, <span class="b"><?= htmlspecialchars($institute) ?></span>. <?= $pronoun ?> has demonstrated commendable performance throughout the training period from <span class="bi"><?= htmlspecialchars($training_period) ?></span>, and <?= $possessive ?> overall performance was evaluated as <span class="bi"><?= htmlspecialchars($grade) ?>.</span>
         
-        <div class="student-name">
-            <?= htmlspecialchars($title ? $title . ' ' : '') ?><?= htmlspecialchars($student_name) ?>
-        </div>
-
-        <div class="body-text">
-            <?= ($data['gender'] ?? 'Male') === 'Female' ? 'daughter' : 'son' ?> of <span class="highlight"><?= htmlspecialchars($father_name) ?></span> has successfully completed the course
-            <div class="course-name"><?= htmlspecialchars($course) ?></div>
-            conducted by <span class="highlight"><?= htmlspecialchars($institute) ?></span> with Grade <span class="highlight" style="color: #b45309;"><?= htmlspecialchars($grade) ?></span>
-            <br>
-            for the period of <span class="highlight"><?= htmlspecialchars($training_period) ?></span>.
+        <div class="award-line">
+            This certificate is awarded on this <span class="bi"><?= htmlspecialchars($award_date) ?></span>
         </div>
     </div>
 
-    <!-- BOTTOM ROW: PHOTO, QR CODE, SIGNATURE -->
-    <table class="bottom-table">
-        <tr>
-            <td style="width: 30%;">
-                <!-- STUDENT PHOTO -->
-                <?php
-                $photo_file = __DIR__ . "/../uploads/" . ($data['student_photo'] ?? '');
-                if (!empty($data['student_photo']) && file_exists($photo_file)):
-                    $type = pathinfo($photo_file, PATHINFO_EXTENSION);
-                    $image_data = file_get_contents($photo_file);
-                    $photo_base64 = "data:image/" . $type . ";base64," . base64_encode($image_data);
-                ?>
-                    <div class="photo-box">
-                        <img src="<?= $photo_base64 ?>" alt="Student Photo">
-                    </div>
-                <?php endif; ?>
-            </td>
+    <!-- STUDENT PHOTO (RIGHT SIDE) -->
+    <?php
+    $photo_file = __DIR__ . "/../uploads/" . ($data['student_photo'] ?? '');
+    if (!empty($data['student_photo']) && file_exists($photo_file)):
+        $type = pathinfo($photo_file, PATHINFO_EXTENSION);
+        $image_data = file_get_contents($photo_file);
+        $photo_base64 = "data:image/" . $type . ";base64," . base64_encode($image_data);
+    ?>
+        <div class="photo-box-wrapper">
+            <img src="<?= $photo_base64 ?>" alt="Student Photo">
+        </div>
+    <?php endif; ?>
 
-            <td style="width: 40%; text-align: center;">
-                <!-- QR CODE FOR INSTANT VALIDATION -->
-                <?php if (!empty($qr_code_url)): ?>
-                    <div class="qr-box">
-                        <img src="<?= $qr_code_url ?>" alt="QR Code">
-                        <div class="qr-label">Scan to Verify</div>
-                    </div>
-                <?php endif; ?>
-            </td>
-
-            <td style="width: 30%;">
-                <div class="signature-box" style="margin-left: auto;">
-                    <div class="sig-line">Director</div>
-                    <div class="sig-title"><?= htmlspecialchars($mentor ?? 'Course Director') ?></div>
-                </div>
-            </td>
-        </tr>
-    </table>
+    <!-- QR CODE FOR VERIFICATION (BOTTOM LEFT) -->
+    <?php if (!empty($qr_code_url)): ?>
+        <div class="qr-code-wrapper">
+            <img src="<?= $qr_code_url ?>" alt="QR Code">
+        </div>
+    <?php endif; ?>
 
 </div>
 

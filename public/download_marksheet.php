@@ -97,6 +97,18 @@ date("d M Y",strtotime($end_date));
 
 
 /* ---------------------------
+   FETCH COURSE SUBJECTS
+--------------------------- */
+
+$subjects = [];
+if (!empty($student['course_id'])) {
+    $sub_stmt = $pdo->prepare("SELECT name FROM subjects WHERE course_id = ? ORDER BY id ASC");
+    $sub_stmt->execute([$student['course_id']]);
+    $subjects = $sub_stmt->fetchAll(PDO::FETCH_COLUMN);
+}
+
+
+/* ---------------------------
    GENERATE MARKSHEET HTML
 --------------------------- */
 

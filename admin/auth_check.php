@@ -20,7 +20,7 @@ if (is_staff()) {
     }
 
     // Check specific module permissions
-    $modules = ['students', 'courses', 'mentors', 'institutes', 'api_keys'];
+    $modules = ['students', 'courses', 'subjects', 'mentors', 'institutes', 'api_keys'];
     foreach ($modules as $mod) {
         if (strpos($script_path, "/admin/{$mod}/") !== false) {
             if (!has_permission($mod)) {

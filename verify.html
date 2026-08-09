@@ -147,6 +147,11 @@
                         <span class="text-[10px] text-slate-400 font-semibold uppercase block">Course Name</span>
                         <span id="resCourse" class="font-semibold text-slate-800 block"></span>
                     </div>
+
+                    <div class="p-2.5 bg-white rounded-lg border border-emerald-100">
+                        <span class="text-[10px] text-slate-400 font-semibold uppercase block">Date of Birth</span>
+                        <span id="resDob" class="font-semibold text-slate-800 block"></span>
+                    </div>
                 </div>
 
                 <div class="pt-2 space-y-2">
@@ -219,6 +224,7 @@
                     document.getElementById('resMarks').textContent = `Theory: ${data.theory_marks || 0} | Practical: ${data.practical_marks || 0} (Total: ${data.total_marks || 0})`;
                     document.getElementById('resReg').textContent = data.registration_number || 'N/A';
                     document.getElementById('resCourse').textContent = data.course || 'N/A';
+                    document.getElementById('resDob').textContent = data.dob || 'N/A';
                     document.getElementById('resPdfLink').href = data.certificate_download_url || '#';
                     document.getElementById('resMarksheetLink').href = data.marksheet_download_url || '#';
                     

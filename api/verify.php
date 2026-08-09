@@ -119,6 +119,13 @@ if($student)
     $theory_marks = (int)($student['theory_marks'] ?? 0);
     $practical_marks = (int)($student['practical_marks'] ?? 0);
 
+    $subjects = [];
+    if (!empty($student['course_id'])) {
+        $sub_stmt = $pdo->prepare("SELECT name FROM subjects WHERE course_id = ? ORDER BY id ASC");
+        $sub_stmt->execute([$student['course_id']]);
+        $subjects = $sub_stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+
     echo json_encode([
         "status"                   => "verified",
         "name"                     => $student['name'],
@@ -126,7 +133,8 @@ if($student)
         "registration_number"      => $student['registration_number'],
         "certificate_number"       => $student['certificate_number'],
         "course"                   => $student['course'] ?? 'N/A',
-        "mentor"                   => $student['mentor'] ?? 'N/A',
+        "subjects"                 => $subjects,
+        "dob"                      => $student['dob'] ?? '',
         "grade"                    => $student['grade'] ?? 'Pass',
         "theory_marks"             => $theory_marks,
         "practical_marks"          => $practical_marks,

@@ -3,19 +3,37 @@
 $registration_number = $registration_number ?? ($data['registration_number'] ?? '');
 $certificate_number  = $certificate_number ?? ($data['certificate_number'] ?? '');
 $issue_date          = $issue_date ?? ($data['issue_date'] ?? date('Y-m-d'));
+$dob                 = $dob ?? ($data['dob'] ?? '');
 $title               = $title ?? (function_exists('genderTitle') ? genderTitle($data['gender'] ?? 'Male') : 'Mr.');
 $student_name        = $student_name ?? ($data['name'] ?? '');
 $father_name         = $father_name ?? ($data['father_name'] ?? '');
 $course              = $course ?? ($data['course'] ?? '');
 $institute           = $institute ?? ($data['institute'] ?? '');
-$grade               = $grade ?? ($data['grade'] ?? 'Pass');
 $theory_marks        = (int)($data['theory_marks'] ?? 0);
 $practical_marks     = (int)($data['practical_marks'] ?? 0);
 $total_obtained      = $theory_marks + $practical_marks;
 $max_marks           = 200; // 100 Theory + 100 Practical
-$percentage          = number_format(($total_obtained / $max_marks) * 100, 2);
-$result_status       = ($total_obtained >= 80) ? "PASSED WITH DISTINCTION" : (($total_obtained >= 70) ? "PASSED (FIRST CLASS)" : "PASSED");
+$pct_val             = ($total_obtained / $max_marks) * 100;
+$percentage          = number_format($pct_val, 2);
+
+$computed_letter_grade = function_exists('calculateMarksheetGrade') ? calculateMarksheetGrade($theory_marks, $practical_marks) : 'A+';
+$grade_input           = trim($grade ?? ($data['grade'] ?? ''));
+if (empty($grade_input) || in_array(strtoupper($grade_input), ['PASS', 'EXCELLENT', 'VERY GOOD', 'GOOD', 'FAIR', 'DEFAULT', 'AUTO'])) {
+    $grade = $computed_letter_grade;
+} else {
+    $grade = strtoupper($grade_input);
+}
+
+$result_status       = ($pct_val >= 80) ? "PASSED WITH DISTINCTION" : (($pct_val >= 70) ? "PASSED (FIRST CLASS)" : (($pct_val >= 60) ? "PASSED (SECOND CLASS)" : (($pct_val >= 50) ? "PASSED" : "FAILED")));
 $training_period     = $training_period ?? (date("d M Y", strtotime($data['start_date'] ?? 'now')) . " – " . date("d M Y", strtotime($data['end_date'] ?? 'now')));
+
+// Fetch course subjects if not already supplied
+$subjects = $subjects ?? [];
+if (empty($subjects) && !empty($pdo) && !empty($data['course_id'])) {
+    $stmt_subj = $pdo->prepare("SELECT name FROM subjects WHERE course_id = ? ORDER BY id ASC");
+    $stmt_subj->execute([$data['course_id']]);
+    $subjects = $stmt_subj->fetchAll(PDO::FETCH_COLUMN);
+}
 
 // Logo base64
 $logo_base64 = '';
@@ -293,12 +311,51 @@ if (file_exists($logo_file)) {
             <td class="info-value"><?= htmlspecialchars($training_period) ?></td>
         </tr>
         <tr>
-            <td class="info-label">Course Mentor:</td>
-            <td class="info-value"><?= htmlspecialchars($mentor ?? 'N/A') ?></td>
+            <td class="info-label">Date of Birth:</td>
+            <td class="info-value"><?= !empty($dob) ? date("d M Y", strtotime($dob)) : 'N/A' ?></td>
             <td class="info-label">Date of Issue:</td>
             <td class="info-value"><?= date("d M Y", strtotime($issue_date)) ?></td>
         </tr>
     </table>
+
+    <!-- COURSE SUBJECTS / CURRICULUM COVERED -->
+    <?php if (!empty($subjects) && is_array($subjects)): ?>
+        <table class="marks-table" style="margin-bottom: 5mm;">
+            <thead>
+                <tr>
+                    <th colspan="2" class="text-left" style="background-color: #1e3a8a; color: #ffffff; font-size: 10px; padding: 5px 10px;">
+                        SUBJECTS &amp; CURRICULUM COVERED
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="2" class="text-left" style="padding: 6px 10px; background-color: #f8fafc;">
+                        <table style="width: 100%; border-collapse: collapse; border: none;">
+                            <?php 
+                            $subj_names = array_values(array_filter(array_map(function($s) {
+                                return is_array($s) ? ($s['name'] ?? '') : $s;
+                            }, $subjects)));
+                            $total_subs = count($subj_names);
+                            for ($idx = 0; $idx < $total_subs; $idx += 2): 
+                            ?>
+                                <tr>
+                                    <td style="width: 50%; border: none; padding: 2px 4px; font-size: 9.5px; color: #1e293b;">
+                                        <strong><?= ($idx + 1) ?>.</strong> <?= htmlspecialchars($subj_names[$idx]) ?>
+                                    </td>
+                                    <td style="width: 50%; border: none; padding: 2px 4px; font-size: 9.5px; color: #1e293b;">
+                                        <?php if (isset($subj_names[$idx + 1])): ?>
+                                            <strong><?= ($idx + 2) ?>.</strong> <?= htmlspecialchars($subj_names[$idx + 1]) ?>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endfor; ?>
+                        </table>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    <?php endif; ?>
 
     <!-- MARKS DETAILS TABLE -->
     <table class="marks-table">
@@ -388,7 +445,7 @@ if (file_exists($logo_file)) {
             <td style="width: 30%;">
                 <div class="sig-box" style="margin-left: auto;">
                     <div class="sig-line">Controller of Examinations</div>
-                    <div class="sig-sub"><?= htmlspecialchars($mentor ?? 'Academic Authority') ?></div>
+                    <div class="sig-sub">Authorized Signatory</div>
                 </div>
             </td>
         </tr>

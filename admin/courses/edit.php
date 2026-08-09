@@ -35,6 +35,11 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
     }
 }
 
+// Fetch subjects for this course
+$subj_stmt = $pdo->prepare("SELECT * FROM subjects WHERE course_id=? ORDER BY id ASC");
+$subj_stmt->execute([$id]);
+$course_subjects = $subj_stmt->fetchAll(PDO::FETCH_ASSOC);
+
 include __DIR__ . "/../partials/header.php";
 include __DIR__ . "/../partials/sidebar.php";
 ?>
@@ -53,17 +58,21 @@ include __DIR__ . "/../partials/sidebar.php";
         </a>
     </header>
 
-    <main class="p-8">
+    <main class="p-8 space-y-8 max-w-4xl">
 
         <?php if ($errors): ?>
-            <div class="mb-6 p-4 bg-rose-50 border-l-4 border-rose-500 text-rose-800 rounded-r-lg text-xs">
+            <div class="p-4 bg-rose-50 border-l-4 border-rose-500 text-rose-800 rounded-r-lg text-xs">
                 <?php foreach ($errors as $e): ?>
                     <p><i class="fas fa-exclamation-circle mr-1"></i> <?= htmlspecialchars($e) ?></p>
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>
 
-        <form method="POST" class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 max-w-lg space-y-6">
+        <!-- COURSE TITLE FORM -->
+        <form method="POST" class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 space-y-6">
+            <h2 class="text-xs font-bold text-slate-800 uppercase tracking-wider border-b border-slate-200 pb-2">
+                Course Identity
+            </h2>
             <div>
                 <label class="block text-xs font-medium text-slate-700 mb-1">Course Title *</label>
                 <input type="text" name="name" value="<?= htmlspecialchars($course['name']) ?>" required class="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
@@ -76,6 +85,58 @@ include __DIR__ . "/../partials/sidebar.php";
                 </button>
             </div>
         </form>
+
+        <!-- COURSE SUBJECTS MANAGEMENT -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 space-y-6">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-3">
+                <div>
+                    <h2 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fas fa-layer-group text-indigo-600"></i> Course Subjects (<?= count($course_subjects) ?>)
+                    </h2>
+                    <p class="text-[11px] text-slate-500 mt-0.5">List of subject modules attached to this course</p>
+                </div>
+                <a href="../subjects/add.php?course_id=<?= $course['id'] ?>" class="inline-flex items-center px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition">
+                    <i class="fas fa-plus mr-1.5"></i> Add Subject
+                </a>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border border-slate-200 rounded-lg">
+                    <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                        <tr>
+                            <th class="px-4 py-3 w-12 text-center">#</th>
+                            <th class="px-4 py-3">Subject Title</th>
+                            <th class="px-4 py-3 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        <?php if (empty($course_subjects)): ?>
+                            <tr>
+                                <td colspan="3" class="px-4 py-6 text-center text-slate-400">
+                                    No subjects added to this course yet.
+                                </td>
+                            </tr>
+                        <?php else: 
+                            $idx = 1;
+                            foreach ($course_subjects as $s): 
+                        ?>
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="px-4 py-3 text-center font-semibold text-slate-400"><?= $idx++ ?></td>
+                                <td class="px-4 py-3 font-semibold text-slate-800"><?= htmlspecialchars($s['name']) ?></td>
+                                <td class="px-4 py-3 text-right space-x-1">
+                                    <a href="../subjects/edit.php?id=<?= $s['id'] ?>" class="p-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded inline-block" title="Edit Subject">
+                                        <i class="fas fa-edit text-xs"></i>
+                                    </a>
+                                    <a href="../subjects/delete.php?id=<?= $s['id'] ?>" onclick="return confirm('Delete subject: <?= addslashes($s['name']) ?>?')" class="p-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded inline-block" title="Delete Subject">
+                                        <i class="fas fa-trash-alt text-xs"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php endforeach; endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
     </main>
 </div>

@@ -61,7 +61,8 @@ include __DIR__ . "/../partials/sidebar.php";
 
 $available_permissions = [
     'students'  => ['label' => 'Students Management', 'desc' => 'Allow staff to add, view, edit, and export student certificates.'],
-    'courses'   => ['label' => 'Courses Management', 'desc' => 'Allow staff to create and manage academic course subjects.'],
+    'courses'   => ['label' => 'Courses Management', 'desc' => 'Allow staff to create and manage academic courses.'],
+    'subjects'  => ['label' => 'Subjects Management', 'desc' => 'Allow staff to create and manage course subjects and mark schemas.'],
     'mentors'   => ['label' => 'Mentors Management', 'desc' => 'Allow staff to create and manage instructors and mentors.'],
     'institutes'=> ['label' => 'Institutes Management', 'desc' => 'Allow staff to create and manage affiliated institute centers.'],
     'api_keys'  => ['label' => 'Developer API Keys', 'desc' => 'Allow staff to view and generate integration API keys.']

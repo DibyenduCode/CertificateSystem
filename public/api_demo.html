@@ -166,8 +166,8 @@
                             <span id="resCourse" class="font-semibold"></span>
                         </div>
                         <div>
-                            <span class="text-[10px] text-slate-400 font-semibold uppercase block">Mentor</span>
-                            <span id="resMentor" class="font-semibold"></span>
+                            <span class="text-[10px] text-slate-400 font-semibold uppercase block">Date of Birth</span>
+                            <span id="resDob" class="font-semibold"></span>
                         </div>
                     </div>
 
@@ -249,7 +249,7 @@
                     document.getElementById('resGrade').textContent = 'Grade ' + (data.grade || 'Pass');
                     document.getElementById('resReg').textContent = data.registration_number || 'N/A';
                     document.getElementById('resCourse').textContent = data.course || 'N/A';
-                    document.getElementById('resMentor').textContent = data.mentor || 'N/A';
+                    document.getElementById('resDob').textContent = data.dob || 'N/A';
                     document.getElementById('resPdfLink').href = data.certificate_download_url || '#';
 
                     // Student Photo

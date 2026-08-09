@@ -27,7 +27,8 @@ $offset = $pagination['offset'];
 
 $sql = "
     SELECT courses.*, 
-           (SELECT COUNT(*) FROM students WHERE course_id = courses.id) AS total_students
+           (SELECT COUNT(*) FROM students WHERE course_id = courses.id) AS total_students,
+           (SELECT COUNT(*) FROM subjects WHERE course_id = courses.id) AS total_subjects
     FROM courses
     $where
     ORDER BY id DESC
@@ -46,7 +47,7 @@ $courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <h1 class="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
                 <i class="fas fa-book-open text-blue-600"></i> Academic Courses
             </h1>
-            <p class="text-xs text-slate-500 mt-0.5">Manage course catalog and student enrollments</p>
+            <p class="text-xs text-slate-500 mt-0.5">Manage course catalog, subjects, and student enrollments</p>
         </div>
         <a href="add.php" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition">
             <i class="fas fa-plus mr-2"></i> Add Course
@@ -80,6 +81,7 @@ $courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <thead class="bg-slate-100/80 text-slate-600 font-semibold uppercase tracking-wider border-b border-slate-200">
                         <tr>
                             <th class="px-6 py-3.5">Course Name</th>
+                            <th class="px-6 py-3.5">Course Subjects</th>
                             <th class="px-6 py-3.5">Enrolled Students</th>
                             <th class="px-6 py-3.5 text-right">Actions</th>
                         </tr>
@@ -87,7 +89,7 @@ $courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <tbody class="divide-y divide-slate-200">
                         <?php if (empty($courses)): ?>
                             <tr>
-                                <td colspan="3" class="px-6 py-8 text-center text-slate-400">
+                                <td colspan="4" class="px-6 py-8 text-center text-slate-400">
                                     No courses found.
                                 </td>
                             </tr>
@@ -97,12 +99,20 @@ $courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <?= htmlspecialchars($c['name']) ?>
                                 </td>
                                 <td class="px-6 py-4">
+                                    <a href="../subjects/list.php?course_id=<?= $c['id'] ?>" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition">
+                                        <i class="fas fa-layer-group text-[10px] mr-1"></i> <?= $c['total_subjects'] ?> Subjects
+                                    </a>
+                                </td>
+                                <td class="px-6 py-4">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
                                         <i class="fas fa-users text-[10px] mr-1"></i> <?= $c['total_students'] ?> Students
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <div class="inline-flex items-center space-x-2">
+                                        <a href="../subjects/add.php?course_id=<?= $c['id'] ?>" class="px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded text-[11px] font-semibold transition" title="Add Subject to Course">
+                                            <i class="fas fa-plus text-[10px] mr-1"></i> Add Subject
+                                        </a>
                                         <a href="edit.php?id=<?= $c['id'] ?>" class="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded transition" title="Edit Course">
                                             <i class="fas fa-edit text-xs"></i>
                                         </a>
