@@ -1,89 +1,126 @@
 <?php
-
+$page_title = "Manage Mentors";
 require_once __DIR__ . "/../auth_check.php";
 require_once __DIR__ . "/../../config/database.php";
+require_once __DIR__ . "/../../config/functions.php";
 
 include __DIR__ . "/../partials/header.php";
 include __DIR__ . "/../partials/sidebar.php";
 
-$stmt = $pdo->query("SELECT * FROM mentors ORDER BY id DESC");
+$search = trim($_GET['search'] ?? '');
+$page   = max(1, (int)($_GET['page'] ?? 1));
+$limit  = 10;
 
+$params = [];
+$where = "";
+if ($search !== '') {
+    $where = "WHERE name LIKE ?";
+    $params[] = "%$search%";
+}
+
+$count_stmt = $pdo->prepare("SELECT COUNT(*) FROM mentors $where");
+$count_stmt->execute($params);
+$total_rows = (int)$count_stmt->fetchColumn();
+
+$pagination = get_pagination_data($total_rows, $limit, $page);
+$offset = $pagination['offset'];
+
+$sql = "
+    SELECT mentors.*, 
+           (SELECT COUNT(*) FROM students WHERE mentor_id = mentors.id) AS total_students
+    FROM mentors
+    $where
+    ORDER BY id DESC
+    LIMIT $limit OFFSET $offset
+";
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
+$mentors = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
-<div class="flex-1 flex flex-col">
+<div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
 
-<header class="bg-white shadow px-6 py-4 flex justify-between items-center">
+    <header class="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
+                <i class="fas fa-chalkboard-teacher text-blue-600"></i> Course Mentors
+            </h1>
+            <p class="text-xs text-slate-500 mt-0.5">Manage instructors and training mentors</p>
+        </div>
+        <a href="add.php" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition">
+            <i class="fas fa-plus mr-2"></i> Add Mentor
+        </a>
+    </header>
 
-<h1 class="text-lg font-semibold">
-Mentors
-</h1>
+    <main class="p-8 space-y-6">
 
-<a href="add.php"
-class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+            <form method="GET" class="flex gap-3 max-w-md">
+                <div class="relative flex-1">
+                    <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search mentor name..." class="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <i class="fas fa-search absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                </div>
+                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition">
+                    Search
+                </button>
+                <?php if ($search): ?>
+                    <a href="list.php" class="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold rounded-lg transition" title="Clear">
+                        <i class="fas fa-undo"></i>
+                    </a>
+                <?php endif; ?>
+            </form>
+        </div>
 
-Add Mentor
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-100/80 text-slate-600 font-semibold uppercase tracking-wider border-b border-slate-200">
+                        <tr>
+                            <th class="px-6 py-3.5">Mentor Name</th>
+                            <th class="px-6 py-3.5">Assigned Students</th>
+                            <th class="px-6 py-3.5 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        <?php if (empty($mentors)): ?>
+                            <tr>
+                                <td colspan="3" class="px-6 py-8 text-center text-slate-400">
+                                    No mentors found.
+                                </td>
+                            </tr>
+                        <?php else: foreach ($mentors as $m): ?>
+                            <tr class="hover:bg-slate-50/80 transition">
+                                <td class="px-6 py-4 font-bold text-slate-800 text-sm">
+                                    <?= htmlspecialchars($m['name']) ?>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                                        <i class="fas fa-user-graduate text-[10px] mr-1"></i> <?= $m['total_students'] ?> Students
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="inline-flex items-center space-x-2">
+                                        <a href="edit.php?id=<?= $m['id'] ?>" class="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded transition" title="Edit Mentor">
+                                            <i class="fas fa-edit text-xs"></i>
+                                        </a>
+                                        <a href="delete.php?id=<?= $m['id'] ?>" onclick="return confirm('Delete mentor: <?= addslashes($m['name']) ?>?')" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded transition" title="Delete Mentor">
+                                            <i class="fas fa-trash-alt text-xs"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; endif; ?>
+                    </tbody>
+                </table>
+            </div>
 
-</a>
+            <?php 
+            $query_params = ['search' => $search];
+            include __DIR__ . "/../partials/pagination.php"; 
+            ?>
+        </div>
 
-</header>
-
-
-<main class="p-6">
-
-<div class="bg-white shadow rounded-lg overflow-hidden">
-
-<table class="w-full text-sm">
-
-<thead class="bg-gray-100 text-gray-600">
-
-<tr>
-
-<th class="p-3 text-left">Mentor Name</th>
-<th class="p-3 text-left">Actions</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<?php while($mentor = $stmt->fetch(PDO::FETCH_ASSOC)): ?>
-
-<tr class="border-t hover:bg-gray-50">
-
-<td class="p-3 font-medium">
-
-<?= htmlspecialchars($mentor['name']) ?>
-
-</td>
-
-<td class="p-3 flex gap-2">
-
-<a href="edit.php?id=<?= $mentor['id'] ?>"
-class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700">
-
-Edit
-
-</a>
-
-<a href="delete.php?id=<?= $mentor['id'] ?>"
-onclick="return confirm('Delete mentor?')"
-class="bg-red-500 text-white px-3 py-1 rounded text-xs hover:bg-red-600">
-
-Delete
-
-</a>
-
-</td>
-
-</tr>
-
-<?php endwhile; ?>
-
-</tbody>
-
-</table>
-
+    </main>
 </div>
 
-</main>
+<?php include __DIR__ . "/../partials/footer.php"; ?>

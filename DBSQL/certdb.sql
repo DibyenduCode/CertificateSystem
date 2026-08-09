@@ -51,6 +51,7 @@ CREATE TABLE `api_keys` (
   `id` int(11) NOT NULL,
   `name` varchar(255) DEFAULT NULL,
   `api_key` varchar(255) DEFAULT NULL,
+  `allowed_domain` varchar(255) DEFAULT NULL,
   `status` enum('active','inactive') DEFAULT 'active',
   `hit_count` int(11) DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
@@ -93,13 +94,18 @@ CREATE TABLE `mentors` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `organizations`
+-- Table structure for table `staff`
 --
 
-CREATE TABLE `organizations` (
-  `id` int(11) NOT NULL,
+CREATE TABLE `staff` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `username` varchar(100) NOT NULL UNIQUE,
+  `password` varchar(255) NOT NULL,
+  `permissions` text DEFAULT NULL,
+  `status` enum('active','inactive') DEFAULT 'active',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -115,15 +121,17 @@ CREATE TABLE `students` (
   `gender` enum('Male','Female') DEFAULT NULL,
   `registration_number` varchar(50) DEFAULT NULL,
   `certificate_number` varchar(100) DEFAULT NULL,
-  `organization_id` int(11) DEFAULT NULL,
   `institute_id` int(11) DEFAULT NULL,
   `course_id` int(11) DEFAULT NULL,
   `mentor_id` int(11) DEFAULT NULL,
+  `created_by_staff_id` int(11) DEFAULT NULL,
   `dob` date DEFAULT NULL,
   `start_date` date DEFAULT NULL,
   `end_date` date DEFAULT NULL,
   `issue_date` date DEFAULT NULL,
   `grade` varchar(10) DEFAULT NULL,
+  `theory_marks` int(11) DEFAULT 0,
+  `practical_marks` int(11) DEFAULT 0,
   `student_photo` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -165,12 +173,6 @@ ALTER TABLE `mentors`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `organizations`
---
-ALTER TABLE `organizations`
-  ADD PRIMARY KEY (`id`);
-
---
 -- Indexes for table `students`
 --
 ALTER TABLE `students`
@@ -179,7 +181,6 @@ ALTER TABLE `students`
   ADD UNIQUE KEY `certificate_number` (`certificate_number`),
   ADD KEY `course_id` (`course_id`),
   ADD KEY `mentor_id` (`mentor_id`),
-  ADD KEY `fk_students_organization` (`organization_id`),
   ADD KEY `fk_students_institute` (`institute_id`);
 
 --
@@ -217,12 +218,6 @@ ALTER TABLE `mentors`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
--- AUTO_INCREMENT for table `organizations`
---
-ALTER TABLE `organizations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
 -- AUTO_INCREMENT for table `students`
 --
 ALTER TABLE `students`
@@ -237,7 +232,6 @@ ALTER TABLE `students`
 --
 ALTER TABLE `students`
   ADD CONSTRAINT `fk_students_institute` FOREIGN KEY (`institute_id`) REFERENCES `institutes` (`id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `fk_students_organization` FOREIGN KEY (`organization_id`) REFERENCES `organizations` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `students_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`),
   ADD CONSTRAINT `students_ibfk_2` FOREIGN KEY (`mentor_id`) REFERENCES `mentors` (`id`);
 COMMIT;

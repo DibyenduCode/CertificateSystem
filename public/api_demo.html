@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REST API Certificate Verification Portal</title>
+    <link rel="icon" type="image/png" href="../assets/logo.png">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #071527 0%, #0f2744 50%, #030a14 100%);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(24px);
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 30px rgba(14, 165, 233, 0.25), 0 0 15px rgba(29, 78, 216, 0.2); }
+            50% { box-shadow: 0 0 50px rgba(14, 165, 233, 0.5), 0 0 25px rgba(29, 78, 216, 0.35); }
+        }
+
+        .glow-effect {
+            animation: pulseGlow 4s infinite ease-in-out;
+        }
+
+        .swal2-popup {
+            border-radius: 1rem !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col justify-between items-center px-4 py-8 text-slate-800">
+
+    <!-- HEADER BRANDING -->
+    <header class="w-full max-w-2xl text-center pt-4">
+        <div class="inline-flex items-center justify-center p-4 rounded-2xl bg-white shadow-2xl mb-4">
+            <img src="../assets/logo.png" alt="Biswas Company Logo" class="h-20 sm:h-24 w-auto object-contain">
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">REST API Verification Integration</h1>
+        <p class="text-xs sm:text-sm text-slate-400 mt-1">Live demonstration of third-party API integration for certificate validation</p>
+    </header>
+
+    <!-- MAIN API FORM CONTAINER -->
+    <main class="w-full max-w-xl my-6">
+        <div class="glass-card rounded-2xl shadow-2xl p-6 sm:p-8 border border-slate-200 glow-effect space-y-6">
+
+            <!-- FORM HEADER -->
+            <div class="border-b border-slate-200 pb-4">
+                <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fas fa-plug text-blue-600"></i> API Endpoint Request Tester
+                </h2>
+                <p class="text-xs text-slate-500 mt-0.5">Sends an asynchronous <code>POST</code> request with <code>X-API-KEY</code> header to <code>/api/verify.php</code></p>
+            </div>
+
+            <!-- INPUT FORM -->
+            <form id="apiVerifyForm" onsubmit="performApiVerification(event)" class="space-y-4 text-xs">
+
+                <!-- API KEY FIELD -->
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">X-API-KEY Authentication Header *</label>
+                    <div class="relative">
+                        <input type="text" id="apiKey" value="ffe0815c9e934352ebc077e13fa20e1b" placeholder="Enter 64-character API Key token" required class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono text-xs text-slate-800 bg-slate-50">
+                        <i class="fas fa-key absolute left-3.5 top-3.5 text-slate-400"></i>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1">Generate an API key in the Admin Panel under API Keys.</p>
+                </div>
+
+                <!-- REGISTRATION NUMBER -->
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Student Registration Number *</label>
+                    <div class="relative">
+                        <input type="text" id="regNumber" value="BPLF260000001" placeholder="e.g. BPLF260000001" required class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase font-mono text-xs text-slate-800">
+                        <i class="fas fa-id-card absolute left-3.5 top-3.5 text-slate-400"></i>
+                    </div>
+                </div>
+
+                <!-- DATE OF BIRTH -->
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Date of Birth (DOB) *</label>
+                    <div class="relative">
+                        <input type="date" id="dob" value="2000-05-15" required class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs text-slate-800">
+                        <i class="fas fa-calendar-alt absolute left-3.5 top-3.5 text-slate-400"></i>
+                    </div>
+                </div>
+
+                <!-- SUBMIT BUTTON -->
+                <button type="submit" id="submitBtn" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 transition text-white rounded-xl font-bold text-xs sm:text-sm shadow-lg hover:shadow-blue-500/30 flex items-center justify-center gap-2">
+                    <i class="fas fa-paper-plane"></i> Send API Verification Request
+                </button>
+
+            </form>
+
+            <!-- LOADING SPINNER -->
+            <div id="loadingSpinner" class="hidden p-6 text-center text-blue-600 space-y-2">
+                <i class="fas fa-circle-notch fa-spin text-3xl"></i>
+                <p class="text-xs font-semibold text-slate-600">Executing REST API call to /api/verify.php...</p>
+            </div>
+
+            <!-- API RESPONSE RESULT CONTAINER -->
+            <div id="resultContainer" class="hidden border-t border-slate-200 pt-6 space-y-4">
+                <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center justify-between">
+                    <span><i class="fas fa-code text-emerald-600 mr-1.5"></i> API JSON Response</span>
+                    <span id="statusCodeBadge" class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800">200 OK</span>
+                </h3>
+
+                <!-- RAW JSON RESPONSE DISPLAY -->
+                <pre id="rawJsonResponse" class="p-4 bg-slate-900 text-emerald-400 font-mono text-[11px] rounded-xl overflow-x-auto border border-slate-800 select-all"></pre>
+
+                <!-- FORMATTED VERIFICATION CARD WITH PHOTO & QR CODE -->
+                <div id="verifiedCard" class="hidden bg-emerald-50 border border-emerald-200 p-5 rounded-2xl text-xs space-y-4">
+                    
+                    <!-- HEADER ROW: PHOTO + STATUS + QR CODE -->
+                    <div class="flex items-center justify-between gap-3 p-3 bg-white rounded-xl border border-emerald-200/80 shadow-xs">
+                        
+                        <!-- Photo & Name -->
+                        <div class="flex items-center space-x-3">
+                            <img id="resPhoto" src="" alt="Student Photo" class="w-14 h-14 rounded-xl object-cover border-2 border-emerald-500 shadow-sm hidden">
+                            <div id="resPhotoFallback" class="w-14 h-14 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-xl shadow-sm">
+                                S
+                            </div>
+                            <div>
+                                <span class="text-[9px] uppercase font-extrabold bg-emerald-700 text-white px-2 py-0.5 rounded">AUTHENTIC & VERIFIED</span>
+                                <h3 id="resName" class="font-extrabold text-slate-900 text-sm mt-0.5"></h3>
+                            </div>
+                        </div>
+
+                        <!-- QR Code -->
+                        <div class="text-center shrink-0">
+                            <img id="resQrCode" src="" alt="QR Code" class="w-14 h-14 rounded-lg object-contain border border-slate-200 bg-white p-0.5 shadow-xs">
+                            <span class="text-[8px] font-bold text-slate-400 mt-0.5 block uppercase">QR Code</span>
+                        </div>
+                    </div>
+
+                    <!-- METADATA GRID -->
+                    <div class="grid grid-cols-2 gap-3 text-slate-700 pt-2 border-t border-emerald-200">
+                        <div>
+                            <span class="text-[10px] text-slate-400 font-semibold uppercase block">Grade / Rating</span>
+                            <span id="resGrade" class="font-bold text-emerald-700"></span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-400 font-semibold uppercase block">Registration No</span>
+                            <span id="resReg" class="font-mono font-bold text-slate-800"></span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-400 font-semibold uppercase block">Course</span>
+                            <span id="resCourse" class="font-semibold"></span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-400 font-semibold uppercase block">Mentor</span>
+                            <span id="resMentor" class="font-semibold"></span>
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <a id="resPdfLink" href="#" target="_blank" class="inline-flex items-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow-sm w-full justify-center">
+                            <i class="fas fa-file-pdf mr-1.5"></i> Download PDF Certificate
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="text-center text-xs text-slate-500 pb-4">
+        &copy; Official Certificate REST API Integration Endpoint.
+    </footer>
+
+    <!-- JAVASCRIPT API INTEGRATION LOGIC -->
+    <script>
+        async function performApiVerification(event) {
+            event.preventDefault();
+
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const regNumber = document.getElementById('regNumber').value.trim();
+            const dob = document.getElementById('dob').value.trim();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const resultContainer = document.getElementById('resultContainer');
+            const statusCodeBadge = document.getElementById('statusCodeBadge');
+            const rawJsonResponse = document.getElementById('rawJsonResponse');
+            const verifiedCard = document.getElementById('verifiedCard');
+
+            // Reset view state
+            resultContainer.classList.add('hidden');
+            verifiedCard.classList.add('hidden');
+            loadingSpinner.classList.remove('hidden');
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-50');
+
+            try {
+                // Execute fetch API call to ../api/verify.php
+                const response = await fetch('../api/verify.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-KEY': apiKey
+                    },
+                    body: JSON.stringify({
+                        registration_number: regNumber,
+                        dob: dob
+                    })
+                });
+
+                const data = await response.json();
+                const status = response.status;
+
+                loadingSpinner.classList.add('hidden');
+                resultContainer.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50');
+
+                // Render status code badge
+                statusCodeBadge.textContent = `${status} ${response.statusText || (status === 200 ? 'OK' : 'Error')}`;
+                if (status === 200) {
+                    statusCodeBadge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800";
+                } else {
+                    statusCodeBadge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-rose-100 text-rose-800";
+                }
+
+                // Render JSON pretty response
+                rawJsonResponse.textContent = JSON.stringify(data, null, 2);
+
+                if (status === 200 && data.status === 'verified') {
+                    // Populate Verified Card
+                    document.getElementById('resName').textContent = data.name || 'N/A';
+                    document.getElementById('resGrade').textContent = 'Grade ' + (data.grade || 'Pass');
+                    document.getElementById('resReg').textContent = data.registration_number || 'N/A';
+                    document.getElementById('resCourse').textContent = data.course || 'N/A';
+                    document.getElementById('resMentor').textContent = data.mentor || 'N/A';
+                    document.getElementById('resPdfLink').href = data.certificate_download_url || '#';
+
+                    // Student Photo
+                    const resPhoto = document.getElementById('resPhoto');
+                    const resPhotoFallback = document.getElementById('resPhotoFallback');
+                    if (data.student_photo_url) {
+                        resPhoto.src = data.student_photo_url;
+                        resPhoto.classList.remove('hidden');
+                        resPhotoFallback.classList.add('hidden');
+                    } else {
+                        resPhoto.classList.add('hidden');
+                        resPhotoFallback.textContent = (data.name ? data.name.charAt(0).toUpperCase() : 'S');
+                        resPhotoFallback.classList.remove('hidden');
+                    }
+
+                    // Verification QR Code
+                    if (data.qr_code_url) {
+                        document.getElementById('resQrCode').src = data.qr_code_url;
+                    }
+
+                    verifiedCard.classList.remove('hidden');
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'API Verification Success!',
+                        text: `Certificate verified valid for ${data.name}`,
+                        timer: 3000,
+                        showConfirmButton: false,
+                        timerProgressBar: true
+                    });
+                } else if (status === 200 && data.status === 'not_found') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Student Not Found',
+                        text: 'No student certificate record found matching registration number and DOB.',
+                        confirmButtonColor: '#2563eb'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: `API Error (${status})`,
+                        text: data.error || 'Failed to authenticate or verify certificate.',
+                        confirmButtonColor: '#e11d48'
+                    });
+                }
+
+            } catch (error) {
+                loadingSpinner.classList.add('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50');
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Network / Connection Error',
+                    text: error.message || 'Unable to connect to API endpoint.',
+                    confirmButtonColor: '#e11d48'
+                });
+            }
+        }
+    </script>
+</body>
+
+</html>

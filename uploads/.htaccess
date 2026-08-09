@@ -1,0 +1,8 @@
+# Disable PHP and CGI Script Execution in Uploads Directory
+<FilesMatch "\.(php|php3|php4|php5|php7|phps|phtml|pl|py|cgi|sh|exe)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Force MIME type security
+Options -Indexes

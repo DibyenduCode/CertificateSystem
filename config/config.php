@@ -4,7 +4,7 @@ session_start();
 
 /* BASE URL */
 
-define("BASE_URL","http://localhost/certificate-system");
+define("BASE_URL","http://localhost/cert");
 
 
 /* INSTITUTE INFORMATION */

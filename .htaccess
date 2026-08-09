@@ -1,5 +1,14 @@
 RewriteEngine On
 
+# Disable Directory Browsing
+Options -Indexes
+
+# Disable sensitive files access
+<FilesMatch "^\.env|\.git|composer\.(json|lock)|certdb\.sql$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
 # Only redirect the root URL to public
 RewriteRule ^$ public/ [L]
 

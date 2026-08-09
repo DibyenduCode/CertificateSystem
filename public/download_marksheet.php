@@ -15,7 +15,7 @@ use Dompdf\Options;
 $cert = $_GET['cert'] ?? null;
 
 if(!$cert){
-die("Invalid Certificate");
+    die("Invalid Certificate Number");
 }
 
 /* ---------------------------
@@ -48,7 +48,7 @@ $stmt->execute([$cert]);
 $student = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if(!$student){
-die("Certificate Not Found");
+    die("Student Record Not Found");
 }
 
 /* ---------------------------
@@ -78,6 +78,8 @@ $end_date = $student['end_date'];
 
 $issue_date = $student['issue_date'];
 $grade = $student['grade'];
+$theory_marks = (int)($student['theory_marks'] ?? 0);
+$practical_marks = (int)($student['practical_marks'] ?? 0);
 
 $photo_filepath = __DIR__ . "/../uploads/" . $student['student_photo'];
 if (!empty($student['student_photo']) && file_exists($photo_filepath)) {
@@ -85,12 +87,6 @@ if (!empty($student['student_photo']) && file_exists($photo_filepath)) {
 } else {
     $student_photo = null;
 }
-
-/* course duration text */
-
-$duration = date("M Y",strtotime($start_date))
-." - ".
-date("M Y",strtotime($end_date));
 
 /* training period */
 
@@ -101,12 +97,12 @@ date("d M Y",strtotime($end_date));
 
 
 /* ---------------------------
-   GENERATE CERTIFICATE HTML
+   GENERATE MARKSHEET HTML
 --------------------------- */
 
 ob_start();
 
-include "../templates/certificate-template.php";
+include "../templates/marksheet-template.php";
 
 $html = ob_get_clean();
 
@@ -121,7 +117,7 @@ $dompdf = new Dompdf($options);
 
 $dompdf->loadHtml($html);
 
-$dompdf->setPaper("A4","landscape");
+$dompdf->setPaper("A4","portrait");
 
 $dompdf->render();
 
@@ -129,6 +125,6 @@ $dompdf->render();
    DOWNLOAD PDF
 --------------------------- */
 
-$dompdf->stream("certificate-".$certificate_number.".pdf",[
-"Attachment" => 1
+$dompdf->stream("marksheet-".$certificate_number.".pdf",[
+    "Attachment" => 1
 ]);

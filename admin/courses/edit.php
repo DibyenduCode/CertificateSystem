@@ -1,66 +1,83 @@
 <?php
-
+$page_title = "Edit Course";
 require_once __DIR__ . "/../auth_check.php";
 require_once __DIR__ . "/../../config/database.php";
+require_once __DIR__ . "/../../config/functions.php";
 
-$id = (int)$_GET['id'];
+$id = (int)($_GET['id'] ?? 0);
 
 $stmt = $pdo->prepare("SELECT * FROM courses WHERE id=?");
 $stmt->execute([$id]);
-$course = $stmt->fetch();
+$course = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if(!$course){
-die("Course not found");
+if (!$course) {
+    set_flash('error', "Course not found.");
+    header("Location: list.php");
+    exit;
 }
 
-if($_SERVER['REQUEST_METHOD']=="POST")
-{
+$errors = [];
 
-$stmt = $pdo->prepare("UPDATE courses SET name=? WHERE id=?");
+if ($_SERVER['REQUEST_METHOD'] === "POST") {
+    $name = trim($_POST['name'] ?? '');
 
-$stmt->execute([$_POST['name'],$id]);
+    if (!$name) {
+        $errors[] = "Course name is required.";
+    }
 
-header("Location: list.php");
-exit;
+    if (empty($errors)) {
+        $stmt = $pdo->prepare("UPDATE courses SET name=? WHERE id=?");
+        $stmt->execute([$name, $id]);
 
+        set_flash('success', "Course updated to '{$name}' successfully!");
+        header("Location: list.php");
+        exit;
+    }
 }
 
 include __DIR__ . "/../partials/header.php";
 include __DIR__ . "/../partials/sidebar.php";
-
 ?>
 
-<div class="flex-1 flex flex-col">
+<div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
 
-<header class="bg-white shadow px-6 py-4">
+    <header class="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
+                <i class="fas fa-edit text-blue-600"></i> Edit Course
+            </h1>
+            <p class="text-xs text-slate-500 mt-0.5">ID: #<?= $course['id'] ?></p>
+        </div>
+        <a href="list.php" class="inline-flex items-center px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Courses
+        </a>
+    </header>
 
-<h1 class="text-lg font-semibold">
-Edit Course
-</h1>
+    <main class="p-8">
 
-</header>
+        <?php if ($errors): ?>
+            <div class="mb-6 p-4 bg-rose-50 border-l-4 border-rose-500 text-rose-800 rounded-r-lg text-xs">
+                <?php foreach ($errors as $e): ?>
+                    <p><i class="fas fa-exclamation-circle mr-1"></i> <?= htmlspecialchars($e) ?></p>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
 
-<main class="p-6">
+        <form method="POST" class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 max-w-lg space-y-6">
+            <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Course Title *</label>
+                <input type="text" name="name" value="<?= htmlspecialchars($course['name']) ?>" required class="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
 
-<form method="POST" class="bg-white shadow rounded-lg p-8 max-w-lg">
+            <div class="pt-4 border-t border-slate-200 flex justify-end gap-3">
+                <a href="list.php" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition">Cancel</a>
+                <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition">
+                    Update Course
+                </button>
+            </div>
+        </form>
 
-<label class="block text-sm font-medium mb-1">
-Course Name
-</label>
+    </main>
+</div>
 
-<input
-type="text"
-name="name"
-value="<?= htmlspecialchars($course['name']) ?>"
-class="w-full border rounded px-3 py-2 mb-6">
-
-<button
-class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-
-Update Course
-
-</button>
-
-</form>
-
-</main>
+<?php include __DIR__ . "/../partials/footer.php"; ?>

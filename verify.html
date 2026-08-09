@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Official Certificate Verification Portal</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #071527 0%, #0f2744 50%, #030a14 100%);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(24px);
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 30px rgba(14, 165, 233, 0.25), 0 0 15px rgba(29, 78, 216, 0.2); }
+            50% { box-shadow: 0 0 50px rgba(14, 165, 233, 0.5), 0 0 25px rgba(29, 78, 216, 0.35); }
+        }
+
+        .glow-effect {
+            animation: pulseGlow 4s infinite ease-in-out;
+        }
+
+        .swal2-popup {
+            border-radius: 1rem !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col justify-between items-center px-4 py-8 text-slate-800">
+
+    <!-- TOP HEADER BRANDING -->
+    <header class="w-full max-w-lg text-center pt-4">
+        <div class="inline-flex items-center justify-center p-4 rounded-2xl bg-white shadow-2xl mb-4">
+            <img src="./assets/logo.png" alt="Company Logo" class="h-20 sm:h-24 w-auto object-contain" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Certificate Verification Portal</h1>
+        <p class="text-xs sm:text-sm text-slate-400 mt-1">Instant digital validation system powered by REST API</p>
+    </header>
+
+    <!-- VERIFICATION WIDGET -->
+    <main class="w-full max-w-md my-6">
+        <div class="glass-card rounded-2xl shadow-2xl p-6 sm:p-8 border border-slate-200 glow-effect space-y-6">
+
+            <div class="border-b border-slate-200 pb-3 text-center sm:text-left">
+                <h2 class="text-base font-bold text-slate-800 flex items-center justify-center sm:justify-start gap-2">
+                    <i class="fas fa-shield-alt text-blue-600"></i> Verify Student Certificate
+                </h2>
+                <p class="text-xs text-slate-500 mt-0.5">Enter Registration Number & DOB to validate authenticity</p>
+            </div>
+
+            <!-- SEARCH FORM -->
+            <form id="certVerificationForm" onsubmit="verifyCertificateApi(event)" class="space-y-4 text-xs">
+
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Registration Number *</label>
+                    <div class="relative">
+                        <input type="text" id="regNumber" placeholder="e.g. BPLF260000001" required class="w-full pl-10 pr-4 py-3 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase font-mono text-slate-800">
+                        <i class="fas fa-id-card absolute left-3.5 top-3.5 text-slate-400 text-xs sm:text-sm"></i>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Date of Birth (DOB) *</label>
+                    <div class="relative">
+                        <input type="date" id="dob" required class="w-full pl-10 pr-4 py-3 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-slate-800">
+                        <i class="fas fa-calendar-alt absolute left-3.5 top-3.5 text-slate-400 text-xs sm:text-sm"></i>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 transition text-white rounded-xl font-bold text-xs sm:text-sm shadow-lg hover:shadow-blue-500/30 flex items-center justify-center gap-2">
+                    <i class="fas fa-search"></i> Verify Certificate Now
+                </button>
+
+            </form>
+
+            <!-- LOADING SPINNER -->
+            <div id="loadingSpinner" class="hidden p-6 text-center text-blue-600 space-y-2">
+                <i class="fas fa-circle-notch fa-spin text-3xl"></i>
+                <p class="text-xs font-semibold text-slate-600">Verifying details with API registry...</p>
+            </div>
+
+            <!-- RESULT VERIFIED CARD -->
+            <div id="resultCard" class="hidden bg-emerald-50 border border-emerald-200 p-5 rounded-2xl text-xs space-y-4">
+                
+                <!-- VERIFIED HEADER WITH PHOTO & QR CODE -->
+                <div class="flex items-center justify-between gap-3 p-3 bg-white rounded-xl border border-emerald-200/80 shadow-xs">
+                    
+                    <!-- Photo & Status -->
+                    <div class="flex items-center space-x-3">
+                        <img id="resPhoto" src="" alt="Student Photo" class="w-14 h-14 rounded-xl object-cover border-2 border-emerald-500 shadow-sm hidden">
+                        <div id="resPhotoFallback" class="w-14 h-14 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-xl shadow-sm">
+                            S
+                        </div>
+                        <div>
+                            <span class="text-[9px] uppercase font-extrabold bg-emerald-700 text-white px-2 py-0.5 rounded">AUTHENTIC & VERIFIED</span>
+                            <h3 id="resName" class="font-extrabold text-slate-900 text-sm mt-0.5"></h3>
+                        </div>
+                    </div>
+
+                    <!-- Verification QR Code -->
+                    <div class="text-center shrink-0">
+                        <img id="resQrCode" src="" alt="QR Code" class="w-14 h-14 rounded-lg object-contain border border-slate-200 bg-white p-0.5 shadow-xs">
+                        <span class="text-[8px] font-bold text-slate-400 mt-0.5 block uppercase">QR Code</span>
+                    </div>
+                </div>
+
+                <!-- METADATA GRID -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-slate-700 pt-2 border-t border-emerald-200/80">
+                    <div class="p-2.5 bg-white rounded-lg border border-emerald-100">
+                        <span class="text-[10px] text-slate-400 font-semibold uppercase block">Grade / Rating</span>
+                        <span id="resGrade" class="font-bold text-emerald-700 text-xs sm:text-sm block"></span>
+                    </div>
+
+                    <div class="p-2.5 bg-white rounded-lg border border-emerald-100">
+                        <span class="text-[10px] text-slate-400 font-semibold uppercase block">Marks Breakdown</span>
+                        <span id="resMarks" class="font-semibold text-slate-800 text-xs block"></span>
+                    </div>
+
+                    <div class="p-2.5 bg-white rounded-lg border border-emerald-100">
+                        <span class="text-[10px] text-slate-400 font-semibold uppercase block">Registration No</span>
+                        <span id="resReg" class="font-mono font-bold text-slate-800 text-xs block"></span>
+                    </div>
+
+                    <div class="p-2.5 bg-white rounded-lg border border-emerald-100">
+                        <span class="text-[10px] text-slate-400 font-semibold uppercase block">Course Name</span>
+                        <span id="resCourse" class="font-semibold text-slate-800 block"></span>
+                    </div>
+                </div>
+
+                <div class="pt-2 space-y-2">
+                    <a id="resPdfLink" href="#" target="_blank" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shadow-md flex items-center justify-center gap-2">
+                        <i class="fas fa-certificate text-amber-300 text-sm"></i> Option 1: Download Certificate
+                    </a>
+                    <a id="resMarksheetLink" href="#" target="_blank" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition shadow-md flex items-center justify-center gap-2">
+                        <i class="fas fa-file-invoice text-indigo-200 text-sm"></i> Option 2: Download Marksheet
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="text-center text-xs text-slate-500 pb-4">
+        <p>&copy; Official Certificate Verification Registry.</p>
+    </footer>
+
+    <!-- CONFIGURATION & API SCRIPT -->
+    <script>
+        // =========================================================================
+        // CONFIGURATION: INTEGRATED API KEY & ENDPOINT URL
+        // =========================================================================
+        const INTEGRATED_API_KEY  = "ffe0815c9e934352ebc077e13fa20e1b";
+        const INTEGRATED_API_URL  = "http://localhost/cert/api/verify.php";
+        // =========================================================================
+
+        async function verifyCertificateApi(event) {
+            event.preventDefault();
+
+            const regNumber = document.getElementById('regNumber').value.trim();
+            const dob = document.getElementById('dob').value.trim();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const resultCard = document.getElementById('resultCard');
+
+            // Reset UI State
+            resultCard.classList.add('hidden');
+            loadingSpinner.classList.remove('hidden');
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-50');
+
+            try {
+                const response = await fetch(INTEGRATED_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-KEY': INTEGRATED_API_KEY
+                    },
+                    body: JSON.stringify({
+                        registration_number: regNumber,
+                        dob: dob
+                    })
+                });
+
+                const data = await response.json();
+                const status = response.status;
+
+                loadingSpinner.classList.add('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50');
+
+                if (status === 200 && data.status === 'verified') {
+                    // Fill verified card details
+                    document.getElementById('resName').textContent = data.name || 'N/A';
+                    document.getElementById('resGrade').textContent = 'Grade ' + (data.grade || 'Pass');
+                    document.getElementById('resMarks').textContent = `Theory: ${data.theory_marks || 0} | Practical: ${data.practical_marks || 0} (Total: ${data.total_marks || 0})`;
+                    document.getElementById('resReg').textContent = data.registration_number || 'N/A';
+                    document.getElementById('resCourse').textContent = data.course || 'N/A';
+                    document.getElementById('resPdfLink').href = data.certificate_download_url || '#';
+                    document.getElementById('resMarksheetLink').href = data.marksheet_download_url || '#';
+                    
+                    // Student Photo
+                    const resPhoto = document.getElementById('resPhoto');
+                    const resPhotoFallback = document.getElementById('resPhotoFallback');
+                    if (data.student_photo_url) {
+                        resPhoto.src = data.student_photo_url;
+                        resPhoto.classList.remove('hidden');
+                        resPhotoFallback.classList.add('hidden');
+                    } else {
+                        resPhoto.classList.add('hidden');
+                        resPhotoFallback.textContent = (data.name ? data.name.charAt(0).toUpperCase() : 'S');
+                        resPhotoFallback.classList.remove('hidden');
+                    }
+
+                    // Verification QR Code
+                    if (data.qr_code_url) {
+                        document.getElementById('resQrCode').src = data.qr_code_url;
+                    }
+
+                    resultCard.classList.remove('hidden');
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Certificate Verified!',
+                        text: `Authentic certificate found for ${data.name}`,
+                        timer: 3000,
+                        showConfirmButton: false,
+                        timerProgressBar: true
+                    });
+                } else if (status === 200 && data.status === 'not_found') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Certificate Not Found',
+                        text: 'No student certificate record found matching your registration number and DOB.',
+                        confirmButtonColor: '#2563eb'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: `Verification Error (${status})`,
+                        text: data.error || 'Access denied or invalid API credentials.',
+                        confirmButtonColor: '#e11d48'
+                    });
+                }
+
+            } catch (error) {
+                loadingSpinner.classList.add('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50');
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Connection Failed',
+                    text: 'Could not connect to verification server: ' + error.message,
+                    confirmButtonColor: '#e11d48'
+                });
+            }
+        }
+    </script>
+</body>
+
+</html>

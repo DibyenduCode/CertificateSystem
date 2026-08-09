@@ -205,3 +205,128 @@ imagedestroy($image_p);
 return true;
 
 }
+
+
+/* ------------------------------------------------
+   Flash Session Notification Messages
+------------------------------------------------ */
+
+function set_flash($type, $message)
+{
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    $_SESSION['flash'] = [
+        'type' => $type, // 'success', 'error', 'warning', 'info'
+        'message' => $message
+    ];
+}
+
+function get_flash()
+{
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    if (isset($_SESSION['flash'])) {
+        $flash = $_SESSION['flash'];
+        unset($_SESSION['flash']);
+        return $flash;
+    }
+    return null;
+}
+
+
+/* ------------------------------------------------
+   Pagination Data Helper
+------------------------------------------------ */
+
+function get_pagination_data($total_items, $limit = 10, $current_page = 1)
+{
+    $limit = max(1, (int)$limit);
+    $total_pages = max(1, (int)ceil($total_items / $limit));
+    $current_page = max(1, min($total_pages, (int)$current_page));
+    $offset = ($current_page - 1) * $limit;
+    $start_item = $total_items > 0 ? $offset + 1 : 0;
+    $end_item = min($offset + $limit, $total_items);
+
+    return [
+        'total_items'  => $total_items,
+        'total_pages'  => $total_pages,
+        'current_page' => $current_page,
+        'limit'        => $limit,
+        'offset'       => $offset,
+        'start_item'   => $start_item,
+        'end_item'     => $end_item,
+        'has_prev'     => $current_page > 1,
+        'has_next'     => $current_page < $total_pages,
+    ];
+}
+
+
+/* ------------------------------------------------
+   Validate Uploaded Image File
+------------------------------------------------ */
+
+function validateStudentImage($file)
+{
+    if (!isset($file['error']) || $file['error'] !== UPLOAD_ERR_OK) {
+        return "Please select a valid image file.";
+    }
+
+    $allowed_mimes = ['image/jpeg', 'image/png', 'image/jpg'];
+    $file_info = getimagesize($file['tmp_name']);
+    if (!$file_info || !in_array($file_info['mime'], $allowed_mimes)) {
+        return "Invalid file type. Only JPG and PNG images are allowed.";
+    }
+
+    $max_size = 5 * 1024 * 1024; // 5MB
+    if ($file['size'] > $max_size) {
+        return "Image file size must not exceed 5MB.";
+    }
+
+    return true;
+}
+
+
+/* ------------------------------------------------
+   Role & Permission Helpers
+------------------------------------------------ */
+
+function is_admin()
+{
+    return isset($_SESSION['admin_id']) && empty($_SESSION['staff_id']);
+}
+
+function is_staff()
+{
+    return isset($_SESSION['staff_id']);
+}
+
+function is_impersonating()
+{
+    return !empty($_SESSION['impersonated_by_admin']);
+}
+
+function get_staff_permissions()
+{
+    if (!isset($_SESSION['staff_permissions'])) {
+        return [];
+    }
+    if (is_array($_SESSION['staff_permissions'])) {
+        return $_SESSION['staff_permissions'];
+    }
+    $decoded = json_decode($_SESSION['staff_permissions'], true);
+    return is_array($decoded) ? $decoded : [];
+}
+
+function has_permission($module)
+{
+    if (is_admin()) {
+        return true;
+    }
+    if (is_staff()) {
+        $permissions = get_staff_permissions();
+        return in_array($module, $permissions);
+    }
+    return false;
+}
