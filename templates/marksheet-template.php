@@ -38,6 +38,22 @@ if (empty($subjects) && !empty($pdo) && !empty($data['course_id'])) {
     $stmt_subj->execute([$data['course_id']]);
     $subjects = $stmt_subj->fetchAll(PDO::FETCH_COLUMN);
 }
+
+// Parse subjects cleanly line-by-line (split by newline, comma, or semicolon if multiple are combined in one string)
+$clean_subjects = [];
+if (!empty($subjects)) {
+    $raw_items = is_array($subjects) ? $subjects : [$subjects];
+    foreach ($raw_items as $item) {
+        $str = is_array($item) ? ($item['name'] ?? '') : (string)$item;
+        $split = preg_split('/[\n\r,;]+/', $str);
+        foreach ($split as $part) {
+            $part = trim($part);
+            if (!empty($part)) {
+                $clean_subjects[] = $part;
+            }
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -78,31 +94,31 @@ if (empty($subjects) && !empty($pdo) && !empty($data['course_id'])) {
             box-sizing: border-box;
         }
 
-        /* STUDENT IDENTITY OVERLAY */
+        /* STUDENT IDENTITY OVERLAYS (Positioned cleanly next to pre-printed labels) */
         .lbl-student-name {
             position: absolute;
-            top: 94.5mm;
-            left: 60mm;
-            font-size: 11.5px;
+            top: 95mm;
+            left: 81mm;
+            font-size: 13.5px;
             font-weight: bold;
             color: #000000;
         }
 
         .lbl-reg-no {
             position: absolute;
-            top: 100mm;
-            left: 60mm;
-            font-size: 11.5px;
+            top: 100.5mm;
+            left: 86mm;
+            font-size: 13.5px;
             font-weight: bold;
             color: #000000;
         }
 
         .lbl-course {
             position: absolute;
-            top: 105.5mm;
-            left: 60mm;
-            width: 105mm;
-            font-size: 11px;
+            top: 106mm;
+            left: 81mm;
+            width: 85mm;
+            font-size: 13px;
             font-weight: bold;
             color: #000000;
             line-height: 1.2;
@@ -110,10 +126,10 @@ if (empty($subjects) && !empty($pdo) && !empty($data['course_id'])) {
 
         .lbl-center {
             position: absolute;
-            top: 94.5mm;
-            left: 204mm;
-            width: 65mm;
-            font-size: 11px;
+            top: 95mm;
+            left: 218mm;
+            width: 52mm;
+            font-size: 13px;
             font-weight: bold;
             color: #000000;
             line-height: 1.2;
@@ -121,9 +137,9 @@ if (empty($subjects) && !empty($pdo) && !empty($data['course_id'])) {
 
         .lbl-date {
             position: absolute;
-            top: 100mm;
-            left: 204mm;
-            font-size: 11.5px;
+            top: 100.5mm;
+            left: 230mm;
+            font-size: 13.5px;
             font-weight: bold;
             color: #000000;
         }
@@ -134,7 +150,7 @@ if (empty($subjects) && !empty($pdo) && !empty($data['course_id'])) {
             top: 132mm;
             left: 28mm;
             width: 241mm;
-            font-size: 10.5px;
+            font-size: 12px;
             color: #000000;
         }
 
@@ -158,6 +174,7 @@ if (empty($subjects) && !empty($pdo) && !empty($data['course_id'])) {
             width: 27mm;
             text-align: center;
             font-weight: bold;
+            font-size: 13px;
         }
 
         .col-practical {
@@ -165,6 +182,7 @@ if (empty($subjects) && !empty($pdo) && !empty($data['course_id'])) {
             width: 27mm;
             text-align: center;
             font-weight: bold;
+            font-size: 13px;
         }
 
         .col-obtained {
@@ -172,14 +190,15 @@ if (empty($subjects) && !empty($pdo) && !empty($data['course_id'])) {
             width: 45mm;
             text-align: center;
             font-weight: bold;
+            font-size: 13px;
         }
 
         /* SUMMARY ROW OVERLAY */
         .lbl-total-obtained {
             position: absolute;
             top: 156.5mm;
-            left: 222mm;
-            font-size: 11.5px;
+            left: 226mm;
+            font-size: 13.5px;
             font-weight: bold;
             color: #000000;
         }
@@ -187,8 +206,8 @@ if (empty($subjects) && !empty($pdo) && !empty($data['course_id'])) {
         .lbl-percentage {
             position: absolute;
             top: 156.5mm;
-            left: 260mm;
-            font-size: 11.5px;
+            left: 272mm;
+            font-size: 13.5px;
             font-weight: bold;
             color: #000000;
         }
@@ -213,10 +232,6 @@ if (empty($subjects) && !empty($pdo) && !empty($data['course_id'])) {
     <!-- SUBJECTS & MARKS TABLE ROWS OVERLAY -->
     <div class="table-rows-container">
         <?php
-        $clean_subjects = array_values(array_filter(array_map(function($s) {
-            return is_array($s) ? ($s['name'] ?? '') : $s;
-        }, $subjects)));
-
         if (!empty($clean_subjects)):
             $num_subjects = count($clean_subjects);
             // Distribute theory & practical marks proportionately across subject rows
