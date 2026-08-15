@@ -1,9 +1,9 @@
 <?php
 
-require_once "../config/database.php";
-require_once "../config/functions.php";
-require_once "../config/config.php";
-require_once "../vendor/autoload.php";
+require_once __DIR__ . "/../config/database.php";
+require_once __DIR__ . "/../config/functions.php";
+require_once __DIR__ . "/../config/config.php";
+require_once __DIR__ . "/../vendor/autoload.php";
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -106,7 +106,7 @@ date("d M Y",strtotime($end_date));
 
 ob_start();
 
-include "../templates/certificate-template.php";
+include __DIR__ . "/../templates/certificate-template.php";
 
 $html = ob_get_clean();
 
@@ -129,6 +129,19 @@ $dompdf->render();
    DOWNLOAD PDF
 --------------------------- */
 
-$dompdf->stream("certificate-".$certificate_number.".pdf",[
-"Attachment" => 1
-]);
+// Clear all active output buffers to prevent corruption or random filenames
+while (ob_get_level()) {
+    ob_end_clean();
+}
+
+$pdfContent = $dompdf->output();
+$filename   = "certificate-" . $certificate_number . ".pdf";
+
+header("Content-Type: application/pdf");
+header('Content-Disposition: attachment; filename="' . $filename . '"; filename*=UTF-8\'\'' . rawurlencode($filename));
+header("Content-Length: " . strlen($pdfContent));
+header("Cache-Control: private, max-age=0, must-revalidate");
+header("Pragma: public");
+
+echo $pdfContent;
+exit;

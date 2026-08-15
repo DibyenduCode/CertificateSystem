@@ -21,7 +21,6 @@ $certificate_number  = $certificate_number ?? ($data['certificate_number'] ?? ''
 $issue_date          = $issue_date ?? ($data['issue_date'] ?? date('Y-m-d'));
 $gender              = $data['gender'] ?? 'Male';
 
-// Ensure Title has a dot (e.g. Mr. or Ms.)
 $raw_title = $title ?? (function_exists('genderTitle') ? genderTitle($gender) : ($gender === 'Female' ? 'Ms.' : 'Mr.'));
 $title = trim($raw_title);
 if ($title !== '' && !str_ends_with($title, '.')) {
@@ -45,13 +44,11 @@ if (empty($grade_input) || in_array(strtoupper($grade_input), ['PASS', 'A+', 'A'
 $start_d = $data['start_date'] ?? 'now';
 $end_d   = $data['end_date'] ?? 'now';
 $training_period = date('F Y', strtotime($start_d)) . ' to ' . date('F Y', strtotime($end_d));
-
 $award_date = date('d/m/Y', strtotime($issue_date));
 $relation   = ($gender === 'Female') ? 'Daughter of' : 'Son of';
 $pronoun    = ($gender === 'Female') ? 'She' : 'He';
 $possessive = ($gender === 'Female') ? 'her' : 'his';
 
-// Format father name with Mr. prefix if needed
 if (!empty($father_name) && !str_starts_with($father_name, 'MR.') && !str_starts_with($father_name, 'MS.')) {
     $father_display = 'Mr. ' . $father_name;
 } else {
@@ -74,7 +71,7 @@ if (!empty($father_name) && !str_starts_with($father_name, 'MR.') && !str_starts
             width: 297mm;
             height: 210mm;
             overflow: hidden;
-            font-family: 'Helvetica Neue', Helvetica, Arial, 'DejaVu Sans', sans-serif;
+            font-family: Arial, Helvetica, sans-serif;
             color: #000000;
             background-color: #ffffff;
         }
@@ -100,9 +97,9 @@ if (!empty($father_name) && !str_starts_with($father_name, 'MR.') && !str_starts
         /* Regd. No and Certificate No Row */
         .numbers-row {
             position: absolute;
-            top: 103mm;
-            left: 18mm;
-            width: 261mm;
+            top: 104mm;
+            left: 20mm;
+            width: 257mm;
             font-size: 14px;
             font-weight: normal;
             color: #000000;
@@ -117,9 +114,9 @@ if (!empty($father_name) && !str_starts_with($father_name, 'MR.') && !str_starts
         /* Main Body Text Container */
         .body-container {
             position: absolute;
-            top: 111mm;
-            left: 18mm;
-            width: 220mm;
+            top: 112mm;
+            left: 20mm;
+            width: 215mm;
             font-size: 14px;
             line-height: 1.65;
             color: #000000;
@@ -136,20 +133,21 @@ if (!empty($father_name) && !str_starts_with($father_name, 'MR.') && !str_starts
         }
 
         .award-line {
-            margin-top: 3.5mm;
+            margin-top: 4mm;
             font-size: 14px;
         }
 
         /* Student Photo Box on Right */
         .photo-box-wrapper {
             position: absolute;
-            top: 113.5mm;
-            right: 18mm;
+            top: 114mm;
+            right: 20mm;
             width: 27mm;
             height: 33mm;
             border: 1px solid #000000;
             background: #ffffff;
             text-align: center;
+            box-sizing: border-box;
         }
         .photo-box-wrapper img {
             width: 100%;
@@ -160,8 +158,8 @@ if (!empty($father_name) && !str_starts_with($father_name, 'MR.') && !str_starts
         /* QR Code Box at Bottom Left */
         .qr-code-wrapper {
             position: absolute;
-            top: 155mm;
-            left: 18mm;
+            top: 154mm;
+            left: 20mm;
             width: 27mm;
             height: 27mm;
         }

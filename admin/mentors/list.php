@@ -77,6 +77,7 @@ $mentors = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <thead class="bg-slate-100/80 text-slate-600 font-semibold uppercase tracking-wider border-b border-slate-200">
                         <tr>
                             <th class="px-6 py-3.5">Mentor Name</th>
+                            <th class="px-6 py-3.5">Signature (Controller)</th>
                             <th class="px-6 py-3.5">Assigned Students</th>
                             <th class="px-6 py-3.5 text-right">Actions</th>
                         </tr>
@@ -84,7 +85,7 @@ $mentors = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <tbody class="divide-y divide-slate-200">
                         <?php if (empty($mentors)): ?>
                             <tr>
-                                <td colspan="3" class="px-6 py-8 text-center text-slate-400">
+                                <td colspan="4" class="px-6 py-8 text-center text-slate-400">
                                     No mentors found.
                                 </td>
                             </tr>
@@ -92,6 +93,13 @@ $mentors = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <tr class="hover:bg-slate-50/80 transition">
                                 <td class="px-6 py-4 font-bold text-slate-800 text-sm">
                                     <?= htmlspecialchars($m['name']) ?>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <?php if (!empty($m['signature']) && file_exists(__DIR__ . "/../../uploads/" . $m['signature'])): ?>
+                                        <img src="<?= BASE_URL ?>/uploads/<?= htmlspecialchars($m['signature']) ?>" alt="Signature" class="h-8 object-contain bg-white border p-1 rounded">
+                                    <?php else: ?>
+                                        <span class="text-slate-400 italic text-[11px]">No signature</span>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="px-6 py-4">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">

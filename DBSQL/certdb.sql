@@ -1,11 +1,9 @@
--- phpMyAdmin SQL Dump
--- version 5.2.1
--- https://www.phpmyadmin.net/
---
--- Host: 127.0.0.1
--- Generation Time: Apr 04, 2026 at 09:18 PM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- ========================================================
+-- Certificate Verification System Database Schema
+-- Default Admin User Credentials:
+--   Username: admin
+--   Password: admin123
+-- ========================================================
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -88,7 +86,8 @@ CREATE TABLE `institutes` (
 
 CREATE TABLE `mentors` (
   `id` int(11) NOT NULL,
-  `name` varchar(255) DEFAULT NULL
+  `name` varchar(255) DEFAULT NULL,
+  `signature` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------

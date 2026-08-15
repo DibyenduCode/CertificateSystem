@@ -1,9 +1,9 @@
 <?php
 
-require_once "../config/database.php";
-require_once "../config/functions.php";
-require_once "../config/config.php";
-require_once "../vendor/autoload.php";
+require_once __DIR__ . "/../config/database.php";
+require_once __DIR__ . "/../config/functions.php";
+require_once __DIR__ . "/../config/config.php";
+require_once __DIR__ . "/../vendor/autoload.php";
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -27,6 +27,7 @@ SELECT
 students.*,
 courses.name AS course,
 mentors.name AS mentor,
+mentors.signature AS mentor_signature,
 institutes.name AS institute
 
 FROM students
@@ -88,6 +89,17 @@ if (!empty($student['student_photo']) && file_exists($photo_filepath)) {
     $student_photo = null;
 }
 
+/* Base64 encode Examination Controller Signature */
+$signature_base64 = null;
+if (!empty($student['mentor_signature'])) {
+    $sig_filepath = __DIR__ . "/../uploads/" . $student['mentor_signature'];
+    if (file_exists($sig_filepath)) {
+        $sig_type = pathinfo($sig_filepath, PATHINFO_EXTENSION);
+        $sig_data = file_get_contents($sig_filepath);
+        $signature_base64 = 'data:image/' . $sig_type . ';base64,' . base64_encode($sig_data);
+    }
+}
+
 /* training period */
 
 $training_period =
@@ -114,7 +126,7 @@ if (!empty($student['course_id'])) {
 
 ob_start();
 
-include "../templates/marksheet-template.php";
+include __DIR__ . "/../templates/marksheet-template.php";
 
 $html = ob_get_clean();
 
@@ -137,6 +149,19 @@ $dompdf->render();
    DOWNLOAD PDF
 --------------------------- */
 
-$dompdf->stream("marksheet-".$certificate_number.".pdf",[
-    "Attachment" => 1
-]);
+// Clear all active output buffers to prevent corruption or random filenames
+while (ob_get_level()) {
+    ob_end_clean();
+}
+
+$pdfContent = $dompdf->output();
+$filename   = "marksheet-" . $certificate_number . ".pdf";
+
+header("Content-Type: application/pdf");
+header('Content-Disposition: attachment; filename="' . $filename . '"; filename*=UTF-8\'\'' . rawurlencode($filename));
+header("Content-Length: " . strlen($pdfContent));
+header("Cache-Control: private, max-age=0, must-revalidate");
+header("Pragma: public");
+
+echo $pdfContent;
+exit;

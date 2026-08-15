@@ -37,13 +37,16 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
     $photo = null;
 
+    $studentNumbers = generateUniqueStudentNumbers($pdo, $issue);
+    $registration   = $studentNumbers['registration_number'];
+    $certificate    = $studentNumbers['certificate_number'];
+
     if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
         $img_val = validateStudentImage($_FILES['photo']);
         if ($img_val !== true) {
             $errors[] = $img_val;
         } else {
-            $tempRegistration = generateRegistrationNumber($pdo);
-            $filename = $tempRegistration . ".jpg";
+            $filename = $registration . ".jpg";
             $targetDir = __DIR__ . "/../../uploads/students/";
             if (!is_dir($targetDir)) {
                 mkdir($targetDir, 0755, true);
@@ -60,8 +63,6 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
     }
 
     if (empty($errors)) {
-        $registration = $tempRegistration ?? generateRegistrationNumber($pdo);
-        $certificate  = generateCertificateNumber($pdo);
 
         $stmt = $pdo->prepare("
             INSERT INTO students

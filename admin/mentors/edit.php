@@ -25,9 +25,37 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
         $errors[] = "Mentor name is required.";
     }
 
+    $signature_path = $mentor['signature'];
+
+    if (isset($_FILES['signature']) && $_FILES['signature']['error'] === UPLOAD_ERR_OK) {
+        $sig_val = validateSignatureImage($_FILES['signature']);
+        if ($sig_val !== true) {
+            $errors[] = $sig_val;
+        } else {
+            $ext = pathinfo($_FILES['signature']['name'], PATHINFO_EXTENSION);
+            $filename = "sig_" . time() . "_" . random_int(1000, 9999) . "." . strtolower($ext);
+            $targetDir = __DIR__ . "/../../uploads/mentors/signatures/";
+            if (!is_dir($targetDir)) {
+                mkdir($targetDir, 0755, true);
+            }
+            $destination = $targetDir . $filename;
+
+            // Remove old signature file if exists
+            if (!empty($mentor['signature']) && file_exists(__DIR__ . "/../../uploads/" . $mentor['signature'])) {
+                @unlink(__DIR__ . "/../../uploads/" . $mentor['signature']);
+            }
+
+            if (move_uploaded_file($_FILES['signature']['tmp_name'], $destination)) {
+                $signature_path = "mentors/signatures/" . $filename;
+            } else {
+                $errors[] = "Failed to upload signature image.";
+            }
+        }
+    }
+
     if (empty($errors)) {
-        $stmt = $pdo->prepare("UPDATE mentors SET name=? WHERE id=?");
-        $stmt->execute([$name, $id]);
+        $stmt = $pdo->prepare("UPDATE mentors SET name=?, signature=? WHERE id=?");
+        $stmt->execute([$name, $signature_path, $id]);
 
         set_flash('success', "Mentor updated to '{$name}' successfully!");
         header("Location: list.php");
@@ -63,10 +91,22 @@ include __DIR__ . "/../partials/sidebar.php";
             </div>
         <?php endif; ?>
 
-        <form method="POST" class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 max-w-lg space-y-6">
+        <form method="POST" enctype="multipart/form-data" class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 max-w-lg space-y-6">
             <div>
                 <label class="block text-xs font-medium text-slate-700 mb-1">Mentor Full Name *</label>
                 <input type="text" name="name" value="<?= htmlspecialchars($mentor['name']) ?>" required class="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Signature Image (Examination Controller)</label>
+                <?php if (!empty($mentor['signature']) && file_exists(__DIR__ . "/../../uploads/" . $mentor['signature'])): ?>
+                    <div class="mb-3 p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center gap-3">
+                        <img src="<?= BASE_URL ?>/uploads/<?= htmlspecialchars($mentor['signature']) ?>" alt="Signature" class="h-12 object-contain bg-white border p-1 rounded">
+                        <span class="text-xs text-slate-500">Current uploaded signature</span>
+                    </div>
+                <?php endif; ?>
+                <input type="file" name="signature" accept="image/png, image/jpeg, image/jpg, image/webp" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg text-slate-600 file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                <p class="text-[11px] text-slate-400 mt-1">PNG, JPG or WEBP image. Leave empty to keep existing signature.</p>
             </div>
 
             <div class="pt-4 border-t border-slate-200 flex justify-end gap-3">

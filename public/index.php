@@ -73,7 +73,7 @@ require_once __DIR__ . "/../config/config.php";
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Registration Number</label>
                     <div class="relative">
-                        <input type="text" name="registration_number" placeholder="e.g. BPLF260000001" required class="w-full pl-10 pr-4 py-3 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase font-mono">
+                        <input type="text" name="registration_number" placeholder="e.g. BPLF<?= date('y') ?>0000001" required class="w-full pl-10 pr-4 py-3 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase font-mono">
                         <i class="fas fa-hashtag absolute left-3.5 top-3.5 text-slate-400 text-xs sm:text-sm"></i>
                     </div>
                 </div>

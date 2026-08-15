@@ -5,70 +5,153 @@ require_once __DIR__ . "/database.php";
 
 
 /* ------------------------------------------------
-   Generate Registration Number
+   Generate Random Serial Helper
 ------------------------------------------------ */
 
-function generateRegistrationNumber($pdo)
+function generateRandomSerial($length = 7)
+{
+    $max = pow(10, $length) - 1;
+    $num = random_int(0, $max);
+    return str_pad($num, $length, "0", STR_PAD_LEFT);
+}
+
+
+/* ------------------------------------------------
+   Automatic Year Extraction Helper
+------------------------------------------------ */
+
+function getYearFromDate($dateString = null)
+{
+    if ($dateString && strtotime($dateString)) {
+        return date("y", strtotime($dateString));
+    }
+    return date("y");
+}
+
+
+/* ------------------------------------------------
+   Generate Registration Number (Random, Unique, Automatic Year)
+------------------------------------------------ */
+
+function generateRegistrationNumber($pdo, $customSerial = null, $issueDate = null)
 {
 
-    $year = date("y");
+    $year = getYearFromDate($issueDate);
+    $length = defined('REG_SERIAL_LENGTH') ? REG_SERIAL_LENGTH : 7;
+    $prefix = INSTITUTE_PREFIX . $year;
 
-    $stmt = $pdo->prepare("
-        SELECT COUNT(*) 
-        FROM students
-        WHERE YEAR(created_at)=YEAR(CURDATE())
-    ");
+    if ($customSerial !== null) {
+        $serial = str_pad($customSerial, $length, "0", STR_PAD_LEFT);
+        return $prefix . $serial;
+    }
 
-    $stmt->execute();
+    $attempts = 0;
+    $maxAttempts = 10000;
 
-    $count = $stmt->fetchColumn() + 1;
+    do {
+        $randSerial = generateRandomSerial($length);
+        $regNumber  = $prefix . $randSerial;
 
-    $serial = str_pad(
-        $count,
-        REG_SERIAL_LENGTH,
-        "0",
-        STR_PAD_LEFT
-    );
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM students WHERE registration_number = ?");
+        $stmt->execute([$regNumber]);
+        $exists = $stmt->fetchColumn() > 0;
+        $attempts++;
 
-    return INSTITUTE_PREFIX . $year . $serial;
+        if ($attempts >= $maxAttempts) {
+            throw new Exception("Unable to generate unique Registration Number after {$maxAttempts} attempts.");
+        }
+    } while ($exists);
+
+    return $regNumber;
 
 }
 
 
 /* ------------------------------------------------
-   Generate Certificate Number
+   Generate Certificate Number (Random, Unique, Automatic Year)
 ------------------------------------------------ */
 
-function generateCertificateNumber($pdo)
+function generateCertificateNumber($pdo, $customSerial = null, $issueDate = null)
 {
 
-    $year = date("y");
+    $year = getYearFromDate($issueDate);
+    $length = defined('CERT_SERIAL_LENGTH') ? CERT_SERIAL_LENGTH : 7;
+    $prefix = CERT_PREFIX . INSTITUTE_CODE . STATE_CODE . $year . "C";
 
-    $stmt = $pdo->prepare("
-        SELECT COUNT(*) 
-        FROM students
-        WHERE YEAR(created_at)=YEAR(CURDATE())
-    ");
+    if ($customSerial !== null) {
+        $serial = str_pad($customSerial, $length, "0", STR_PAD_LEFT);
+        return $prefix . $serial;
+    }
 
-    $stmt->execute();
+    $attempts = 0;
+    $maxAttempts = 10000;
 
-    $count = $stmt->fetchColumn() + 1;
+    do {
+        $randSerial = generateRandomSerial($length);
+        $certNumber = $prefix . $randSerial;
 
-    $serial = str_pad(
-        $count,
-        CERT_SERIAL_LENGTH,
-        "0",
-        STR_PAD_LEFT
-    );
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM students WHERE certificate_number = ?");
+        $stmt->execute([$certNumber]);
+        $exists = $stmt->fetchColumn() > 0;
+        $attempts++;
 
-    return CERT_PREFIX .
-           INSTITUTE_CODE .
-           STATE_CODE .
-           $year .
-           "C" .
-           $serial;
+        if ($attempts >= $maxAttempts) {
+            throw new Exception("Unable to generate unique Certificate Number after {$maxAttempts} attempts.");
+        }
+    } while ($exists);
+
+    return $certNumber;
 
 }
+
+
+/* ------------------------------------------------
+   Generate Unique Pair of Student Numbers (Automatic Year)
+------------------------------------------------ */
+
+function generateUniqueStudentNumbers($pdo, $issueDate = null)
+{
+
+    $year = getYearFromDate($issueDate);
+    $length = max(
+        defined('REG_SERIAL_LENGTH') ? REG_SERIAL_LENGTH : 7,
+        defined('CERT_SERIAL_LENGTH') ? CERT_SERIAL_LENGTH : 7
+    );
+
+    $regPrefix  = INSTITUTE_PREFIX . $year;
+    $certPrefix = CERT_PREFIX . INSTITUTE_CODE . STATE_CODE . $year . "C";
+
+    $attempts = 0;
+    $maxAttempts = 10000;
+
+    do {
+        $randSerial = generateRandomSerial($length);
+        $regNumber  = $regPrefix . $randSerial;
+        $certNumber = $certPrefix . $randSerial;
+
+        $stmt = $pdo->prepare("
+            SELECT COUNT(*) 
+            FROM students 
+            WHERE registration_number = ? OR certificate_number = ?
+        ");
+        $stmt->execute([$regNumber, $certNumber]);
+        $exists = $stmt->fetchColumn() > 0;
+        $attempts++;
+
+        if ($attempts >= $maxAttempts) {
+            throw new Exception("Unable to generate unique Student Numbers after {$maxAttempts} attempts.");
+        }
+    } while ($exists);
+
+    return [
+        'registration_number' => $regNumber,
+        'certificate_number'  => $certNumber,
+        'serial'               => $randSerial,
+        'year'                 => $year
+    ];
+
+}
+
 
 
 /* ------------------------------------------------
@@ -282,6 +365,31 @@ function validateStudentImage($file)
     $max_size = 5 * 1024 * 1024; // 5MB
     if ($file['size'] > $max_size) {
         return "Image file size must not exceed 5MB.";
+    }
+
+    return true;
+}
+
+
+/* ------------------------------------------------
+   Validate Uploaded Signature Image File
+------------------------------------------------ */
+
+function validateSignatureImage($file)
+{
+    if (!isset($file['error']) || $file['error'] !== UPLOAD_ERR_OK) {
+        return "Please select a valid signature image file.";
+    }
+
+    $allowed_mimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+    $file_info = getimagesize($file['tmp_name']);
+    if (!$file_info || !in_array($file_info['mime'], $allowed_mimes)) {
+        return "Invalid signature file type. Only JPG, PNG, and WEBP images are allowed.";
+    }
+
+    $max_size = 5 * 1024 * 1024; // 5MB
+    if ($file['size'] > $max_size) {
+        return "Signature file size must not exceed 5MB.";
     }
 
     return true;

@@ -28,6 +28,7 @@ $theory_marks        = (int)($data['theory_marks'] ?? 0);
 $practical_marks     = (int)($data['practical_marks'] ?? 0);
 $total_obtained      = $theory_marks + $practical_marks;
 $max_marks           = 200; // 100 Theory + 100 Practical
+$pass_marks          = 100;
 $pct_val             = ($total_obtained / $max_marks) * 100;
 $percentage          = number_format($pct_val, 0);
 
@@ -39,7 +40,7 @@ if (empty($subjects) && !empty($pdo) && !empty($data['course_id'])) {
     $subjects = $stmt_subj->fetchAll(PDO::FETCH_COLUMN);
 }
 
-// Parse subjects cleanly line-by-line (split by newline, comma, or semicolon if multiple are combined in one string)
+// Parse subjects cleanly line-by-line
 $clean_subjects = [];
 if (!empty($subjects)) {
     $raw_items = is_array($subjects) ? $subjects : [$subjects];
@@ -71,7 +72,7 @@ if (!empty($subjects)) {
             width: 297mm;
             height: 210mm;
             overflow: hidden;
-            font-family: 'Helvetica Neue', Helvetica, Arial, 'DejaVu Sans', sans-serif;
+            font-family: Arial, Helvetica, sans-serif;
             color: #000000;
             background-color: #ffffff;
         }
@@ -94,130 +95,124 @@ if (!empty($subjects)) {
             box-sizing: border-box;
         }
 
-        /* STUDENT IDENTITY OVERLAYS (Precise positions matching background template labels) */
-        .lbl-student-name {
+        /* STUDENT IDENTITY HEADER BLOCK (Positioned below STATEMENT OF MARKS) */
+        .student-info-table {
             position: absolute;
-            top: 96mm;
-            left: 62mm;
-            font-size: 12px;
+            top: 94mm;
+            left: 24mm;
+            width: 249mm;
+            border-collapse: collapse;
+            font-size: 11pt;
             font-weight: bold;
             color: #000000;
         }
 
-        .lbl-reg-no {
-            position: absolute;
-            top: 101.5mm;
-            left: 64mm;
-            font-size: 12px;
+        .student-info-table td {
+            padding: 3.5px 0;
+            vertical-align: top;
+        }
+
+        .info-label {
             font-weight: bold;
             color: #000000;
         }
 
-        .lbl-course {
-            position: absolute;
-            top: 107mm;
-            left: 60mm;
-            width: 105mm;
-            font-size: 11px;
-            font-weight: bold;
-            color: #000000;
-            line-height: 1.15;
-        }
-
-        .lbl-center {
-            position: absolute;
-            top: 96mm;
-            left: 208mm;
-            width: 58mm;
-            font-size: 11px;
-            font-weight: bold;
-            color: #000000;
-            line-height: 1.15;
-        }
-
-        .lbl-date {
-            position: absolute;
-            top: 101.5mm;
-            left: 220mm;
-            font-size: 12px;
-            font-weight: bold;
+        .info-val {
+            font-weight: 900;
             color: #000000;
         }
 
-        /* SUBJECTS AND MARKS TABLE OVERLAY (DATA AREA: top 136mm to 148mm) */
-        .table-rows-container {
+        /* MARKS TABLE OVERLAY */
+        .marks-table-wrapper {
             position: absolute;
-            top: 135.5mm;
-            left: 28mm;
-            width: 241mm;
-            font-size: 10px;
+            top: 122mm;
+            left: 24mm;
+            width: 249mm;
+        }
+
+        .marks-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 2px solid #000000;
+            background-color: transparent;
+        }
+
+        .marks-table th, .marks-table td {
+            border: 1.5px solid #000000;
+            padding: 5px 8px;
+            font-size: 10.5pt;
             color: #000000;
         }
 
-        .subject-row {
-            height: 4.2mm;
-            line-height: 4.2mm;
-            clear: both;
-        }
-
-        .col-subjects {
-            float: left;
-            width: 140mm;
-            font-weight: bold;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .col-theory {
-            float: left;
-            width: 28mm;
+        .marks-table th {
+            font-weight: 900;
             text-align: center;
-            font-weight: bold;
-            font-size: 11px;
+            text-transform: uppercase;
+            background-color: transparent;
         }
 
-        .col-practical {
-            float: left;
-            width: 30mm;
-            text-align: center;
+        .marks-table td {
             font-weight: bold;
-            font-size: 11px;
         }
 
-        .col-obtained {
-            float: left;
-            width: 43mm;
-            text-align: center;
-            font-weight: bold;
-            font-size: 11px;
+        .col-subj-title {
+            text-align: left;
+            padding-left: 12px !important;
         }
 
-        /* SUMMARY ROW OVERLAY (Pre-printed summary bar at top 149mm - 156mm) */
-        .lbl-total-obtained {
-            position: absolute;
-            top: 150.5mm;
-            left: 214mm;
-            width: 12mm;
-            font-size: 12px;
-            font-weight: bold;
-            color: #000000;
+        .col-num {
             text-align: center;
         }
 
-        .lbl-percentage {
-            position: absolute;
-            top: 150.5mm;
-            left: 254mm;
-            width: 14mm;
-            font-size: 12px;
-            font-weight: bold;
-            color: #000000;
+        /* SUMMARY FOOTER BAR */
+        .marks-summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 2px solid #000000;
+            border-top: none;
+        }
+
+        .marks-summary-table td {
+            border: 1.5px solid #000000;
+            padding: 6px 4px;
+            font-size: 10pt;
+            font-weight: 900;
             text-align: center;
+            color: #000000;
+            text-transform: uppercase;
+        }
+
+        /* EXAMINATION CONTROLLER SIGNATURE OVERLAY (RESTING FLUSH ON TOP OF LINE) */
+        .exam-controller-sig-wrapper {
+            position: absolute;
+            top: 171.5mm;
+            left: 88mm;
+            width: 75mm;
+            height: 14mm;
+            text-align: center;
+        }
+
+        .exam-controller-sig-img {
+            height: 14mm;
+            max-width: 70mm;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
         }
     </style>
 </head>
 <body>
+
+<?php
+if (empty($signature_base64) && !empty($data['mentor_signature'])) {
+    $sig_file = __DIR__ . '/../uploads/' . $data['mentor_signature'];
+    if (file_exists($sig_file)) {
+        $sig_type = pathinfo($sig_file, PATHINFO_EXTENSION);
+        $sig_data = file_get_contents($sig_file);
+        $signature_base64 = 'data:image/' . $sig_type . ';base64,' . base64_encode($sig_data);
+    }
+}
+?>
 
 <?php if (!empty($bg_base64)): ?>
     <img src="<?= $bg_base64 ?>" class="marks-bg-img" alt="Statement of Marks Background">
@@ -225,53 +220,80 @@ if (!empty($subjects)) {
 
 <div class="marks-container">
 
-    <!-- STUDENT IDENTITY OVERLAYS -->
-    <div class="lbl-student-name"><?= htmlspecialchars($title ? $title . ' ' : '') ?><?= htmlspecialchars($student_name) ?></div>
-    <div class="lbl-reg-no"><?= htmlspecialchars($registration_number) ?></div>
-    <div class="lbl-course"><?= htmlspecialchars($course) ?></div>
+    <!-- STUDENT & COURSE IDENTITY SECTION -->
+    <table class="student-info-table">
+        <tr>
+            <td style="width: 58%;">
+                <span class="info-label">STUDENT NAME:</span> <span class="info-val"><?= htmlspecialchars($title ? $title . ' ' : '') ?><?= htmlspecialchars($student_name) ?></span>
+            </td>
+            <td style="width: 42%;">
+                <span class="info-label">TRAINING CENTRE:</span> <span class="info-val"><?= htmlspecialchars($institute) ?></span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span class="info-label">REGISTRATION NO:</span> <span class="info-val"><?= htmlspecialchars($registration_number) ?></span>
+            </td>
+            <td>
+                <span class="info-label">RESULT DECLARED ON:</span> <span class="info-val"><?= date('d/m/Y', strtotime($issue_date)) ?></span>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <span class="info-label">COURSE NAME:</span> <span class="info-val"><?= htmlspecialchars($course) ?></span>
+            </td>
+        </tr>
+    </table>
 
-    <div class="lbl-center"><?= htmlspecialchars($institute) ?></div>
-    <div class="lbl-date"><?= date('d/m/Y', strtotime($issue_date)) ?></div>
+    <!-- MARKS TABLE SECTION -->
+    <div class="marks-table-wrapper">
+        <table class="marks-table">
+            <thead>
+                <tr>
+                    <th rowspan="2" style="width: 50%;">SUBJECTS</th>
+                    <th colspan="3" style="width: 50%;">SCHEME OF MARKS</th>
+                </tr>
+                <tr>
+                    <th style="width: 16%;">THEORY</th>
+                    <th style="width: 16%;">PRACTICAL</th>
+                    <th style="width: 18%;">MARKS OBTAINED</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $display_subjects = !empty($clean_subjects) ? implode(', ', array_map('strtoupper', $clean_subjects)) : $course;
+                ?>
+                <tr>
+                    <td class="col-subj-title"><?= htmlspecialchars($display_subjects) ?></td>
+                    <td class="col-num"><?= $theory_marks ?></td>
+                    <td class="col-num"><?= $practical_marks ?></td>
+                    <td class="col-num"><?= $total_obtained ?></td>
+                </tr>
+            </tbody>
+        </table>
 
-    <!-- SUBJECTS & MARKS TABLE ROWS OVERLAY -->
-    <div class="table-rows-container">
-        <?php
-        if (!empty($clean_subjects)):
-            $num_subjects = count($clean_subjects);
-            // Distribute theory & practical marks proportionately across subject rows
-            $per_subject_theory = (int)ceil($theory_marks / $num_subjects);
-            $per_subject_prac   = (int)ceil($practical_marks / $num_subjects);
-
-            foreach (array_slice($clean_subjects, 0, 3) as $idx => $subj_name):
-                $sub_theory = min(100, $per_subject_theory);
-                $sub_prac   = min(100, $per_subject_prac);
-                $sub_total  = $sub_theory + $sub_prac;
-        ?>
-            <div class="subject-row">
-                <div class="col-subjects"><?= ($idx + 1) ?>. <?= htmlspecialchars(strtoupper($subj_name)) ?></div>
-                <div class="col-theory"><?= $sub_theory ?></div>
-                <div class="col-practical"><?= $sub_prac ?></div>
-                <div class="col-obtained"><?= $sub_total ?></div>
-            </div>
-        <?php 
-            endforeach;
-        else:
-        ?>
-            <!-- Default single summary row if no individual subjects defined -->
-            <div class="subject-row">
-                <div class="col-subjects">1. <?= htmlspecialchars($course) ?></div>
-                <div class="col-theory"><?= $theory_marks ?></div>
-                <div class="col-practical"><?= $practical_marks ?></div>
-                <div class="col-obtained"><?= $total_obtained ?></div>
-            </div>
-        <?php endif; ?>
+        <!-- SUMMARY FOOTER BAR -->
+        <table class="marks-summary-table">
+            <tr>
+                <td style="width: 25%;">FULL MARKS: 200</td>
+                <td style="width: 25%;">PASS MARKS: 100</td>
+                <td style="width: 28%;">TOTAL MARKS OBTAINED: <?= $total_obtained ?></td>
+                <td style="width: 22%;">PERCENTAGE: <?= $percentage ?>%</td>
+            </tr>
+        </table>
     </div>
 
-    <!-- TOTAL MARKS & PERCENTAGE OVERLAY (Positioned inside bottom summary row) -->
-    <div class="lbl-total-obtained"><?= $total_obtained ?></div>
-    <div class="lbl-percentage"><?= $percentage ?>%</div>
+    <!-- EXAMINATION CONTROLLER SIGNATURE (BOTTOM LEFT - ABOVE 'EXAMINATION CONTROLLER') -->
+    <?php if (!empty($signature_base64)): ?>
+        <div class="exam-controller-sig-wrapper">
+            <img src="<?= $signature_base64 ?>" class="exam-controller-sig-img" alt="Examination Controller Signature">
+        </div>
+    <?php endif; ?>
+
+</div>
 
 </div>
 
 </body>
 </html>
+
