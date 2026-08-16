@@ -101,14 +101,16 @@ if (!empty($father_name) && !str_starts_with($father_name, 'MR.') && !str_starts
             left: 20mm;
             width: 257mm;
             font-size: 14px;
-            font-weight: normal;
+            font-weight: bold;
             color: #000000;
         }
         .regd-no {
             float: left;
+            font-weight: bold;
         }
         .cert-no {
             float: right;
+            font-weight: bold;
         }
 
         /* Main Body Text Container */
@@ -143,8 +145,10 @@ if (!empty($father_name) && !str_starts_with($father_name, 'MR.') && !str_starts
             top: 114mm;
             right: 20mm;
             width: 27mm;
-            height: 33mm;
-            border: 1px solid #000000;
+            height: 27mm;
+            border: 2px solid #2563eb;
+            border-radius: 4px;
+            padding: 2px;
             background: #ffffff;
             text-align: center;
             box-sizing: border-box;
@@ -153,6 +157,7 @@ if (!empty($father_name) && !str_starts_with($father_name, 'MR.') && !str_starts
             width: 100%;
             height: 100%;
             object-fit: cover;
+            border-radius: 2px;
         }
 
         /* QR Code Box at Bottom Left */

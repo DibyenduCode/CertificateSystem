@@ -2,6 +2,7 @@
 
 require_once __DIR__ . "/config.php";
 require_once __DIR__ . "/database.php";
+require_once __DIR__ . "/smtp_mailer.php";
 
 
 /* ------------------------------------------------
@@ -365,6 +366,41 @@ function validateStudentImage($file)
     $max_size = 5 * 1024 * 1024; // 5MB
     if ($file['size'] > $max_size) {
         return "Image file size must not exceed 5MB.";
+    }
+
+    return true;
+}
+
+
+/* ------------------------------------------------
+   Validate Uploaded Govt ID Document File (PDF, Max 5MB)
+------------------------------------------------ */
+
+function validateGovIdDocument($file)
+{
+    if (!isset($file['error']) || $file['error'] !== UPLOAD_ERR_OK) {
+        return "Please select a valid Govt ID PDF document.";
+    }
+
+    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    if ($ext !== 'pdf') {
+        return "Invalid file type. Govt ID document must be a PDF file.";
+    }
+
+    $max_size = 5 * 1024 * 1024; // 5MB
+    if ($file['size'] > $max_size) {
+        return "Govt ID document file size must not exceed 5MB.";
+    }
+
+    if (function_exists('finfo_open')) {
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        if ($finfo) {
+            $mime = finfo_file($finfo, $file['tmp_name']);
+            finfo_close($finfo);
+            if ($mime !== 'application/pdf' && $mime !== 'application/x-pdf') {
+                return "Uploaded file is not a valid PDF document.";
+            }
+        }
     }
 
     return true;

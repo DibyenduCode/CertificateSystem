@@ -15,8 +15,8 @@ function is_active($path) {
             <img src="<?= BASE_URL ?>/assets/logo.png" alt="Biswas Company Logo" class="w-full h-full object-contain">
         </div>
         <div>
-            <h2 class="text-base font-bold tracking-tight text-white">CertiPortal</h2>
-            <p class="text-xs text-slate-400">Admin Control Center</p>
+            <h2 class="text-sm font-bold tracking-tight text-white leading-tight">BELIEFPRO LEARNING FORUM</h2>
+            <p class="text-[11px] text-slate-400">Admin Control Center</p>
         </div>
     </div>
 
@@ -82,6 +82,13 @@ function is_active($path) {
             <a href="<?= BASE_URL ?>/admin/api_keys/list.php" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150 <?= is_active('api_keys/') ?>">
                 <i class="fas fa-key w-4 text-center"></i>
                 <span>API Keys</span>
+            </a>
+        <?php endif; ?>
+
+        <?php if (is_admin() || is_impersonating()): ?>
+            <a href="<?= BASE_URL ?>/admin/settings/smtp.php" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150 <?= is_active('settings/smtp.php') ?>">
+                <i class="fas fa-paper-plane w-4 text-center text-blue-400"></i>
+                <span>SMTP Settings</span>
             </a>
         <?php endif; ?>
 

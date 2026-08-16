@@ -111,7 +111,7 @@ require_once __DIR__ . "/../config/config.php";
 
     <!-- FOOTER LINK -->
     <footer class="text-center text-xs text-slate-500 pb-4">
-        <p>&copy; <?= date("Y") ?> Official Certificate Registry. Authorized Verification Portal.</p>
+        <p>&copy; <?= date("Y") ?> BELIEFPRO LEARNING FORUM. Certificate Verification & Management System. All rights reserved.</p>
         <p class="mt-1"><a href="<?= BASE_URL ?>/admin/login.php" class="text-slate-400 hover:text-white underline transition"><i class="fas fa-lock text-[10px] mr-1"></i> Admin Login</a></p>
     </footer>
 

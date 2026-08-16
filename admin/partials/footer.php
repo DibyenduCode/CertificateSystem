@@ -1,7 +1,7 @@
     </div> <!-- Close flex min-h-screen -->
 
     <footer class="bg-white border-t border-slate-200 text-center text-xs text-slate-500 py-3 mt-auto">
-        &copy; <?= date("Y") ?> Certificate Verification & Management System. All rights reserved.
+        &copy; <?= date("Y") ?> BELIEFPRO LEARNING FORUM. Certificate Verification & Management System. All rights reserved.
     </footer>
 
     <!-- GLOBAL SWEETALERT2 CONFIRMATION INTERCEPTOR -->

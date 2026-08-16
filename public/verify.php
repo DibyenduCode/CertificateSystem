@@ -254,7 +254,7 @@ if ($data && !empty($data['course_id'])) {
     </main>
 
     <footer class="text-center text-xs text-slate-500 pb-4">
-        &copy; <?= date("Y") ?> Official Certificate Verification System.
+        &copy; <?= date("Y") ?> BELIEFPRO LEARNING FORUM. Certificate Verification & Management System. All rights reserved.
     </footer>
 
     <?php if ($data): ?>

@@ -4,11 +4,14 @@ require_once __DIR__ . "/../auth_check.php";
 require_once __DIR__ . "/../../config/database.php";
 require_once __DIR__ . "/../../config/functions.php";
 
+ensure_smtp_and_email_tables($pdo);
+
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
     $name         = trim($_POST['name'] ?? '');
+    $email        = trim($_POST['email'] ?? '');
     $father       = trim($_POST['father_name'] ?? '');
     $gender       = $_POST['gender'] ?? 'Male';
     $course       = $_POST['course'] ?? null;
@@ -29,6 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
     }
 
     if (!$name) $errors[] = "Student full name is required.";
+    if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = "Please enter a valid student email address.";
     if (!$father) $errors[] = "Father/Mother name is required.";
     if (!$dob) $errors[] = "Date of birth is required.";
     if (!$start) $errors[] = "Course start date is required.";
@@ -36,6 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
     if (!$issue) $errors[] = "Certificate issue date is required.";
 
     $photo = null;
+    $gov_id_doc = null;
 
     $studentNumbers = generateUniqueStudentNumbers($pdo, $issue);
     $registration   = $studentNumbers['registration_number'];
@@ -62,23 +67,57 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
         }
     }
 
+    if (isset($_FILES['gov_id_doc']) && $_FILES['gov_id_doc']['error'] === UPLOAD_ERR_OK) {
+        $pdf_val = validateGovIdDocument($_FILES['gov_id_doc']);
+        if ($pdf_val !== true) {
+            $errors[] = $pdf_val;
+        } else {
+            $pdfFilename = "govid_" . $registration . ".pdf";
+            $targetDirPdf = __DIR__ . "/../../uploads/govid/";
+            if (!is_dir($targetDirPdf)) {
+                mkdir($targetDirPdf, 0755, true);
+            }
+            $pdfDestination = $targetDirPdf . $pdfFilename;
+            if (!move_uploaded_file($_FILES['gov_id_doc']['tmp_name'], $pdfDestination)) {
+                $errors[] = "Failed to upload Govt ID PDF document.";
+            } else {
+                $gov_id_doc = "govid/" . $pdfFilename;
+            }
+        }
+    }
+
     if (empty($errors)) {
 
         $stmt = $pdo->prepare("
             INSERT INTO students
-            (name, father_name, gender, registration_number, certificate_number,
+            (name, email, father_name, gender, registration_number, certificate_number,
              course_id, mentor_id, institute_id,
-             dob, start_date, end_date, issue_date, grade, theory_marks, practical_marks, student_photo)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             dob, start_date, end_date, issue_date, grade, theory_marks, practical_marks, student_photo, gov_id_doc)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
 
         $stmt->execute([
-            $name, $father, $gender, $registration, $certificate,
+            $name, $email, $father, $gender, $registration, $certificate,
             $course, $mentor, $institute,
-            $dob, $start, $end, $issue, $grade, $theory_marks, $practical_marks, $photo
+            $dob, $start, $end, $issue, $grade, $theory_marks, $practical_marks, $photo, $gov_id_doc
         ]);
 
-        set_flash('success', "Student {$name} registered successfully! Reg: {$registration}");
+        $newStudentId = $pdo->lastInsertId();
+
+        $emailMsg = '';
+        if (!empty($email)) {
+            $mailResult = sendStudentCongratulationEmail($newStudentId, $pdo);
+            if ($mailResult['success']) {
+                $emailMsg = " Congratulation email sent to {$email}.";
+                set_flash('success', "Student {$name} registered successfully! Reg: {$registration}." . $emailMsg);
+            } else {
+                $emailMsg = " (Email status: " . $mailResult['message'] . ")";
+                set_flash('warning', "Student {$name} registered successfully! Reg: {$registration}." . $emailMsg);
+            }
+        } else {
+            set_flash('success', "Student {$name} registered successfully! Reg: {$registration}");
+        }
+
         header("Location: list.php");
         exit;
     }
@@ -136,6 +175,11 @@ include __DIR__ . "/../partials/sidebar.php";
                     </div>
 
                     <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1">Student Email Address (for Congratulation Email)</label>
+                        <input type="email" name="email" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" placeholder="e.g. student@example.com" class="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+
+                    <div>
                         <label class="block text-xs font-medium text-slate-700 mb-1">Father / Guardian Name *</label>
                         <input type="text" name="father_name" value="<?= htmlspecialchars($_POST['father_name'] ?? '') ?>" required class="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
@@ -151,6 +195,12 @@ include __DIR__ . "/../partials/sidebar.php";
                     <div>
                         <label class="block text-xs font-medium text-slate-700 mb-1">Student Photo (Max 5MB, JPG/PNG)</label>
                         <input type="file" name="photo" accept="image/jpeg,image/png" class="w-full text-xs px-3.5 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1">Government ID Document (PDF, Max 5MB)</label>
+                        <input type="file" name="gov_id_doc" accept="application/pdf" class="w-full text-xs px-3.5 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
+                        <p class="text-[11px] text-slate-500 mt-1"><i class="fas fa-shield-alt text-blue-500 mr-0.5"></i> Internal documentation only. Not shown on verification.</p>
                     </div>
 
                     <div>

@@ -185,6 +185,9 @@ $export_query = http_build_query(['search' => $search, 'course_id' => $course_id
                                         <?php endif; ?>
                                         <div>
                                             <div class="font-bold text-slate-800 text-sm"><?= htmlspecialchars($row['name']) ?></div>
+                                            <?php if (!empty($row['email'])): ?>
+                                                <div class="text-[11px] text-slate-500 font-normal flex items-center gap-1"><i class="fas fa-envelope text-[10px] text-blue-500"></i> <?= htmlspecialchars($row['email']) ?></div>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                 </td>
@@ -219,10 +222,17 @@ $export_query = http_build_query(['search' => $search, 'course_id' => $course_id
                                             <i class="fas fa-file-pdf text-xs"></i>
                                         </a>
 
-                                        <!-- PDF Marksheet Download -->
+                                         <!-- PDF Marksheet Download -->
                                         <a href="<?= BASE_URL ?>/public/download_marksheet.php?cert=<?= urlencode($row['certificate_number']) ?>" target="_blank" class="p-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded transition" title="Download PDF Marksheet">
                                             <i class="fas fa-file-alt text-xs"></i>
                                         </a>
+
+                                        <!-- Govt ID Document (PDF) -->
+                                        <?php if (!empty($row['gov_id_doc']) && file_exists(__DIR__ . '/../../uploads/' . $row['gov_id_doc'])): ?>
+                                            <a href="<?= BASE_URL ?>/uploads/<?= htmlspecialchars($row['gov_id_doc']) ?>" target="_blank" class="p-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded transition" title="View Govt ID Document (PDF)">
+                                                <i class="fas fa-id-card text-xs"></i>
+                                            </a>
+                                        <?php endif; ?>
 
                                         <!-- Edit button -->
                                         <a href="edit.php?id=<?= $row['id'] ?>" class="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded transition" title="Edit Student">
@@ -277,6 +287,16 @@ $export_query = http_build_query(['search' => $search, 'course_id' => $course_id
                                         <div>
                                             <span class="text-slate-400 font-semibold uppercase text-[10px] block">Certificate Number</span>
                                             <span class="font-mono font-bold text-emerald-700"><?= htmlspecialchars($row['certificate_number']) ?></span>
+                                        </div>
+                                        <div>
+                                            <span class="text-slate-400 font-semibold uppercase text-[10px] block">Govt ID Document</span>
+                                            <?php if (!empty($row['gov_id_doc']) && file_exists(__DIR__ . '/../../uploads/' . $row['gov_id_doc'])): ?>
+                                                <a href="<?= BASE_URL ?>/uploads/<?= htmlspecialchars($row['gov_id_doc']) ?>" target="_blank" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-semibold underline mt-0.5">
+                                                    <i class="fas fa-file-pdf text-rose-600"></i> View Govt ID (PDF)
+                                                </a>
+                                            <?php else: ?>
+                                                <span class="text-slate-400 font-normal">Not Uploaded</span>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                 </td>

@@ -6,8 +6,8 @@ require_once __DIR__ . "/../../config/functions.php";
 $id = (int)($_GET['id'] ?? 0);
 
 if ($id > 0) {
-    // Fetch student photo to clean up file system
-    $stmt = $pdo->prepare("SELECT name, student_photo FROM students WHERE id = ?");
+    // Fetch student photo and gov_id_doc to clean up file system
+    $stmt = $pdo->prepare("SELECT name, student_photo, gov_id_doc FROM students WHERE id = ?");
     $stmt->execute([$id]);
     $student = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -16,6 +16,12 @@ if ($id > 0) {
             $photo_path = __DIR__ . "/../../uploads/" . $student['student_photo'];
             if (file_exists($photo_path)) {
                 @unlink($photo_path);
+            }
+        }
+        if (!empty($student['gov_id_doc'])) {
+            $govid_path = __DIR__ . "/../../uploads/" . $student['gov_id_doc'];
+            if (file_exists($govid_path)) {
+                @unlink($govid_path);
             }
         }
 

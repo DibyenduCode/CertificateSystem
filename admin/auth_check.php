@@ -12,9 +12,9 @@ if (!isset($_SESSION['admin_id']) && !isset($_SESSION['staff_id'])) {
 if (is_staff()) {
     $script_path = $_SERVER['SCRIPT_NAME'];
     
-    // Staff members cannot access Staff Management tools
-    if (strpos($script_path, '/admin/staff/') !== false && empty($_SESSION['impersonated_by_admin'])) {
-        set_flash('error', 'Access Denied: Staff members cannot access Staff Management.');
+    // Staff members cannot access Staff Management or System Settings
+    if ((strpos($script_path, '/admin/staff/') !== false || strpos($script_path, '/admin/settings/') !== false) && empty($_SESSION['impersonated_by_admin'])) {
+        set_flash('error', 'Access Denied: You do not have permission to access this administration section.');
         header("Location: " . BASE_URL . "/admin/dashboard.php");
         exit;
     }

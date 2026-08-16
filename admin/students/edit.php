@@ -4,6 +4,8 @@ require_once __DIR__ . "/../auth_check.php";
 require_once __DIR__ . "/../../config/database.php";
 require_once __DIR__ . "/../../config/functions.php";
 
+ensure_smtp_and_email_tables($pdo);
+
 $id = (int)($_GET['id'] ?? 0);
 
 $stmt = $pdo->prepare("SELECT * FROM students WHERE id=?");
@@ -20,7 +22,21 @@ $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
+    $action = $_POST['action'] ?? 'update_student';
+
+    if ($action === 'resend_email') {
+        $mailResult = sendStudentCongratulationEmail($id, $pdo, true);
+        if ($mailResult['success']) {
+            set_flash('success', "Congratulation email successfully sent to {$student['email']}!");
+        } else {
+            set_flash('error', "Failed to send email: " . $mailResult['message']);
+        }
+        header("Location: edit.php?id=" . $id);
+        exit;
+    }
+
     $name         = trim($_POST['name'] ?? '');
+    $email        = trim($_POST['email'] ?? '');
     $father       = trim($_POST['father_name'] ?? '');
     $gender       = $_POST['gender'] ?? 'Male';
     $course       = $_POST['course'] ?? null;
@@ -41,9 +57,11 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
     }
 
     if (!$name) $errors[] = "Student name is required.";
+    if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = "Please enter a valid student email address.";
     if (!$father) $errors[] = "Father name is required.";
 
     $photo = $student['student_photo'];
+    $gov_id_doc = $student['gov_id_doc'] ?? null;
 
     if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
         $img_val = validateStudentImage($_FILES['photo']);
@@ -72,19 +90,44 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
         }
     }
 
+    if (isset($_FILES['gov_id_doc']) && $_FILES['gov_id_doc']['error'] === UPLOAD_ERR_OK) {
+        $pdf_val = validateGovIdDocument($_FILES['gov_id_doc']);
+        if ($pdf_val !== true) {
+            $errors[] = $pdf_val;
+        } else {
+            $pdfFilename = "govid_" . $student['registration_number'] . ".pdf";
+            $targetDirPdf = __DIR__ . "/../../uploads/govid/";
+            if (!is_dir($targetDirPdf)) {
+                mkdir($targetDirPdf, 0755, true);
+            }
+            $pdfDestination = $targetDirPdf . $pdfFilename;
+
+            // Remove previous file if existing
+            if (!empty($student['gov_id_doc']) && file_exists(__DIR__ . "/../../uploads/" . $student['gov_id_doc'])) {
+                @unlink(__DIR__ . "/../../uploads/" . $student['gov_id_doc']);
+            }
+
+            if (!move_uploaded_file($_FILES['gov_id_doc']['tmp_name'], $pdfDestination)) {
+                $errors[] = "Failed to upload Govt ID PDF document.";
+            } else {
+                $gov_id_doc = "govid/" . $pdfFilename;
+            }
+        }
+    }
+
     if (empty($errors)) {
         $stmt = $pdo->prepare("
             UPDATE students
-            SET name=?, father_name=?, gender=?, course_id=?, mentor_id=?,
+            SET name=?, email=?, father_name=?, gender=?, course_id=?, mentor_id=?,
                 institute_id=?, dob=?, start_date=?,
-                end_date=?, issue_date=?, grade=?, theory_marks=?, practical_marks=?, student_photo=?
+                end_date=?, issue_date=?, grade=?, theory_marks=?, practical_marks=?, student_photo=?, gov_id_doc=?
             WHERE id=?
         ");
 
         $stmt->execute([
-            $name, $father, $gender, $course, $mentor,
+            $name, $email, $father, $gender, $course, $mentor,
             $institute, $dob, $start,
-            $end, $issue, $grade, $theory_marks, $practical_marks, $photo, $id
+            $end, $issue, $grade, $theory_marks, $practical_marks, $photo, $gov_id_doc, $id
         ]);
 
         set_flash('success', "Student {$name} updated successfully.");
@@ -145,6 +188,18 @@ include __DIR__ . "/../partials/sidebar.php";
                     </div>
 
                     <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1">Student Email Address</label>
+                        <div class="flex gap-2">
+                            <input type="email" name="email" value="<?= htmlspecialchars($student['email'] ?? '') ?>" placeholder="e.g. student@example.com" class="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <?php if (!empty($student['email'])): ?>
+                                <button type="submit" name="action" value="resend_email" onclick="return confirm('Resend congratulation email to <?= htmlspecialchars($student['email']) ?>?')" class="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-lg shadow-sm transition shrink-0 flex items-center gap-1.5" title="Resend Congratulation Email">
+                                    <i class="fas fa-paper-plane text-blue-400"></i> Resend Email
+                                </button>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <div>
                         <label class="block text-xs font-medium text-slate-700 mb-1">Father / Guardian Name *</label>
                         <input type="text" name="father_name" value="<?= htmlspecialchars($student['father_name']) ?>" required class="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
@@ -164,6 +219,20 @@ include __DIR__ . "/../partials/sidebar.php";
                             <div class="mt-2 flex items-center space-x-3 bg-slate-50 p-2 rounded border border-slate-200">
                                 <img src="<?= BASE_URL ?>/uploads/<?= htmlspecialchars($student['student_photo']) ?>" class="w-12 h-12 rounded object-cover border border-slate-300">
                                 <span class="text-[11px] text-slate-500">Current active photo</span>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1">Government ID Document (PDF, Max 5MB)</label>
+                        <input type="file" name="gov_id_doc" accept="application/pdf" class="w-full text-xs px-3.5 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
+                        <p class="text-[11px] text-slate-500 mt-1 mb-1.5"><i class="fas fa-shield-alt text-blue-500 mr-0.5"></i> Internal documentation only. Not shown on verification.</p>
+                        <?php if (!empty($student['gov_id_doc']) && file_exists(__DIR__ . '/../../uploads/' . $student['gov_id_doc'])): ?>
+                            <div class="mt-2 flex items-center gap-2 bg-slate-50 p-2 rounded border border-slate-200">
+                                <span class="text-xs font-semibold text-emerald-700 flex items-center gap-1.5"><i class="fas fa-file-pdf text-rose-600 text-sm"></i> Govt ID PDF Uploaded</span>
+                                <a href="<?= BASE_URL ?>/uploads/<?= htmlspecialchars($student['gov_id_doc']) ?>" target="_blank" class="ml-auto inline-flex items-center gap-1 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition shadow-sm">
+                                    <i class="fas fa-external-link-alt text-[10px]"></i> View Document
+                                </a>
                             </div>
                         <?php endif; ?>
                     </div>
