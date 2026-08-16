@@ -88,22 +88,42 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
     }
 
     if (empty($errors)) {
+        $inserted = false;
+        $insertAttempts = 0;
+        $newStudentId = 0;
 
-        $stmt = $pdo->prepare("
-            INSERT INTO students
-            (name, email, father_name, gender, registration_number, certificate_number,
-             course_id, mentor_id, institute_id,
-             dob, start_date, end_date, issue_date, grade, theory_marks, practical_marks, student_photo, gov_id_doc)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ");
+        while (!$inserted && $insertAttempts < 5) {
+            try {
+                $stmt = $pdo->prepare("
+                    INSERT INTO students
+                    (name, email, father_name, gender, registration_number, certificate_number,
+                     course_id, mentor_id, institute_id,
+                     dob, start_date, end_date, issue_date, grade, theory_marks, practical_marks, student_photo, gov_id_doc)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ");
 
-        $stmt->execute([
-            $name, $email, $father, $gender, $registration, $certificate,
-            $course, $mentor, $institute,
-            $dob, $start, $end, $issue, $grade, $theory_marks, $practical_marks, $photo, $gov_id_doc
-        ]);
+                $stmt->execute([
+                    $name, $email, $father, $gender, $registration, $certificate,
+                    $course, $mentor, $institute,
+                    $dob, $start, $end, $issue, $grade, $theory_marks, $practical_marks, $photo, $gov_id_doc
+                ]);
 
-        $newStudentId = $pdo->lastInsertId();
+                $inserted = true;
+                $newStudentId = $pdo->lastInsertId();
+            } catch (PDOException $ex) {
+                if ($ex->getCode() == 23000 || ($ex->errorInfo[1] ?? 0) == 1062) {
+                    $insertAttempts++;
+                    $studentNumbers = generateUniqueStudentNumbers($pdo, $issue, $institute);
+                    $registration   = $studentNumbers['registration_number'];
+                    $certificate    = $studentNumbers['certificate_number'];
+                } else {
+                    $errors[] = "Database error: " . $ex->getMessage();
+                    break;
+                }
+            }
+        }
+
+        if ($inserted && $newStudentId > 0) {
 
         $emailMsg = '';
         if (!empty($email)) {
@@ -121,6 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
         header("Location: list.php");
         exit;
+        }
     }
 }
 

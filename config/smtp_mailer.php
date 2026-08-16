@@ -59,6 +59,14 @@ function ensure_smtp_and_email_tables($pdo)
             $pdo->exec("UPDATE `institutes` SET `code` = '1R' WHERE `code` IS NULL OR `code` = ''");
         }
 
+        // 5. Ensure UNIQUE indexes on students registration_number and certificate_number
+        try {
+            $pdo->exec("ALTER TABLE `students` ADD UNIQUE INDEX `registration_number` (`registration_number`)");
+        } catch (Exception $e1) {}
+        try {
+            $pdo->exec("ALTER TABLE `students` ADD UNIQUE INDEX `certificate_number` (`certificate_number`)");
+        } catch (Exception $e2) {}
+
         $done = true;
     } catch (Exception $e) {
         error_log("Database initialization error in smtp_mailer.php: " . $e->getMessage());

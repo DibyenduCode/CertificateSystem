@@ -53,8 +53,8 @@ function generateRegistrationNumber($pdo, $customSerial = null, $issueDate = nul
         $randSerial = generateRandomSerial($length);
         $regNumber  = $prefix . $randSerial;
 
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM students WHERE registration_number = ?");
-        $stmt->execute([$regNumber]);
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM students WHERE registration_number = ? OR certificate_number = ?");
+        $stmt->execute([$regNumber, $regNumber]);
         $exists = $stmt->fetchColumn() > 0;
         $attempts++;
 
@@ -88,7 +88,7 @@ function getInstituteCode($pdo, $instituteId = null)
 
 
 /* ------------------------------------------------
-   Generate Certificate Number (BP + Dynamic Inst Code + Year + C + Serial)
+   Generate Certificate Number (PREFIX-INSTITUTECODE-YEARSERIAL, Guaranteed Unique)
 ------------------------------------------------ */
 
 function generateCertificateNumber($pdo, $customSerial = null, $issueDate = null, $instituteId = null)
@@ -111,8 +111,8 @@ function generateCertificateNumber($pdo, $customSerial = null, $issueDate = null
         $randSerial = generateRandomSerial($length);
         $certNumber = $prefix . $randSerial;
 
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM students WHERE certificate_number = ?");
-        $stmt->execute([$certNumber]);
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM students WHERE certificate_number = ? OR registration_number = ?");
+        $stmt->execute([$certNumber, $certNumber]);
         $exists = $stmt->fetchColumn() > 0;
         $attempts++;
 
@@ -154,9 +154,10 @@ function generateUniqueStudentNumbers($pdo, $issueDate = null, $instituteId = nu
         $stmt = $pdo->prepare("
             SELECT COUNT(*) 
             FROM students 
-            WHERE registration_number = ? OR certificate_number = ?
+            WHERE registration_number = :reg OR certificate_number = :reg
+               OR registration_number = :cert OR certificate_number = :cert
         ");
-        $stmt->execute([$regNumber, $certNumber]);
+        $stmt->execute([':reg' => $regNumber, ':cert' => $certNumber]);
         $exists = $stmt->fetchColumn() > 0;
         $attempts++;
 
