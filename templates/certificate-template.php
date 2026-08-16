@@ -170,7 +170,6 @@ if (!empty($father_name) && !str_starts_with($father_name, 'MR.') && !str_starts
             width: 27mm;
             height: 27mm;
             border: 2px solid #000000;
-            border-radius: 4px;
             padding: 2px;
             background: #ffffff;
             text-align: center;
@@ -180,7 +179,6 @@ if (!empty($father_name) && !str_starts_with($father_name, 'MR.') && !str_starts
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 2px;
         }
 
         /* QR Code Box at Bottom Left */
