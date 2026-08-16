@@ -52,6 +52,13 @@ function ensure_smtp_and_email_tables($pdo)
             $pdo->exec("ALTER TABLE `students` ADD COLUMN `gov_id_doc` VARCHAR(255) NULL AFTER `student_photo`");
         }
 
+        // 4. Add code column to institutes table if missing
+        $stmt_check_instcode = $pdo->query("SHOW COLUMNS FROM institutes LIKE 'code'");
+        if ($stmt_check_instcode->rowCount() === 0) {
+            $pdo->exec("ALTER TABLE `institutes` ADD COLUMN `code` VARCHAR(50) NULL AFTER `name`");
+            $pdo->exec("UPDATE `institutes` SET `code` = '1R' WHERE `code` IS NULL OR `code` = ''");
+        }
+
         $done = true;
     } catch (Exception $e) {
         error_log("Database initialization error in smtp_mailer.php: " . $e->getMessage());

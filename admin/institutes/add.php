@@ -8,16 +8,20 @@ $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === "POST") {
     $name = trim($_POST['name'] ?? '');
+    $code = strtoupper(trim($_POST['code'] ?? '1R'));
+    if (empty($code)) {
+        $code = '1R';
+    }
 
     if (!$name) {
         $errors[] = "Institute name is required.";
     }
 
     if (empty($errors)) {
-        $stmt = $pdo->prepare("INSERT INTO institutes (name) VALUES (?)");
-        $stmt->execute([$name]);
+        $stmt = $pdo->prepare("INSERT INTO institutes (name, code) VALUES (?, ?)");
+        $stmt->execute([$name, $code]);
 
-        set_flash('success', "Institute '{$name}' created successfully!");
+        set_flash('success', "Institute '{$name}' (Code: {$code}) created successfully!");
         header("Location: list.php");
         exit;
     }
@@ -55,6 +59,12 @@ include __DIR__ . "/../partials/sidebar.php";
             <div>
                 <label class="block text-xs font-medium text-slate-700 mb-1">Institute Name *</label>
                 <input type="text" name="name" value="<?= htmlspecialchars($_POST['name'] ?? '') ?>" required placeholder="e.g. Apex Institute of Technology" class="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Institute Code (for Certificate Number) *</label>
+                <input type="text" name="code" value="<?= htmlspecialchars($_POST['code'] ?? '1R') ?>" required placeholder="e.g. 1R, 2A, B1" class="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase font-mono font-bold text-blue-700">
+                <p class="text-[11px] text-slate-500 mt-1"><i class="fas fa-info-circle text-blue-500 mr-0.5"></i> Used to build certificate numbers (e.g. <code>BP<strong>1R</strong>26C7394812</code>).</p>
             </div>
 
             <div class="pt-4 border-t border-slate-200 flex justify-end gap-3">

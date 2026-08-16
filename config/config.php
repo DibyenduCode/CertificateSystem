@@ -10,9 +10,8 @@ define("BASE_URL","http://localhost/cert");
 /* INSTITUTE INFORMATION */
 
 define("INSTITUTE_PREFIX","BPLF");        // Registration prefix
-define("CERT_PREFIX","UN");               // Certificate prefix
-define("INSTITUTE_CODE","1R");            // Institute Code
-define("STATE_CODE","WB");                // State Code
+define("CERT_PREFIX","BP");               // Certificate prefix (BP)
+define("INSTITUTE_CODE","1R");            // Default fallback Institute Code (dynamic per institute)
 
 
 /* NUMBER SETTINGS */

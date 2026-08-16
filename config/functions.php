@@ -69,15 +69,35 @@ function generateRegistrationNumber($pdo, $customSerial = null, $issueDate = nul
 
 
 /* ------------------------------------------------
-   Generate Certificate Number (Random, Unique, Automatic Year)
+   Helper to fetch Institute Code dynamically
 ------------------------------------------------ */
 
-function generateCertificateNumber($pdo, $customSerial = null, $issueDate = null)
+function getInstituteCode($pdo, $instituteId = null)
+{
+    $instCode = defined('INSTITUTE_CODE') ? INSTITUTE_CODE : '1R';
+    if (!empty($instituteId)) {
+        $stmt = $pdo->prepare("SELECT code FROM institutes WHERE id = ?");
+        $stmt->execute([$instituteId]);
+        $fetchedCode = trim((string)$stmt->fetchColumn());
+        if ($fetchedCode !== '') {
+            $instCode = strtoupper($fetchedCode);
+        }
+    }
+    return $instCode;
+}
+
+
+/* ------------------------------------------------
+   Generate Certificate Number (BP + Dynamic Inst Code + Year + C + Serial)
+------------------------------------------------ */
+
+function generateCertificateNumber($pdo, $customSerial = null, $issueDate = null, $instituteId = null)
 {
 
     $year = getYearFromDate($issueDate);
     $length = defined('CERT_SERIAL_LENGTH') ? CERT_SERIAL_LENGTH : 7;
-    $prefix = CERT_PREFIX . INSTITUTE_CODE . STATE_CODE . $year . "C";
+    $instCode = getInstituteCode($pdo, $instituteId);
+    $prefix = CERT_PREFIX . $instCode . $year . "C";
 
     if ($customSerial !== null) {
         $serial = str_pad($customSerial, $length, "0", STR_PAD_LEFT);
@@ -107,10 +127,10 @@ function generateCertificateNumber($pdo, $customSerial = null, $issueDate = null
 
 
 /* ------------------------------------------------
-   Generate Unique Pair of Student Numbers (Automatic Year)
+   Generate Unique Pair of Student Numbers (Automatic Year & Dynamic Institute Code)
 ------------------------------------------------ */
 
-function generateUniqueStudentNumbers($pdo, $issueDate = null)
+function generateUniqueStudentNumbers($pdo, $issueDate = null, $instituteId = null)
 {
 
     $year = getYearFromDate($issueDate);
@@ -119,8 +139,9 @@ function generateUniqueStudentNumbers($pdo, $issueDate = null)
         defined('CERT_SERIAL_LENGTH') ? CERT_SERIAL_LENGTH : 7
     );
 
+    $instCode   = getInstituteCode($pdo, $instituteId);
     $regPrefix  = INSTITUTE_PREFIX . $year;
-    $certPrefix = CERT_PREFIX . INSTITUTE_CODE . STATE_CODE . $year . "C";
+    $certPrefix = CERT_PREFIX . $instCode . $year . "C";
 
     $attempts = 0;
     $maxAttempts = 10000;

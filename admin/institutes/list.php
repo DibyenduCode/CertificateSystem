@@ -14,7 +14,8 @@ $limit  = 10;
 $params = [];
 $where = "";
 if ($search !== '') {
-    $where = "WHERE name LIKE ?";
+    $where = "WHERE name LIKE ? OR code LIKE ?";
+    $params[] = "%$search%";
     $params[] = "%$search%";
 }
 
@@ -57,7 +58,7 @@ $institutes = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
             <form method="GET" class="flex gap-3 max-w-md">
                 <div class="relative flex-1">
-                    <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search institute name..." class="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search by name or code..." class="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     <i class="fas fa-search absolute left-3 top-2.5 text-slate-400 text-xs"></i>
                 </div>
                 <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition">
@@ -77,6 +78,7 @@ $institutes = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <thead class="bg-slate-100/80 text-slate-600 font-semibold uppercase tracking-wider border-b border-slate-200">
                         <tr>
                             <th class="px-6 py-3.5">Institute Name</th>
+                            <th class="px-6 py-3.5">Institute Code</th>
                             <th class="px-6 py-3.5">Registered Students</th>
                             <th class="px-6 py-3.5 text-right">Actions</th>
                         </tr>
@@ -84,7 +86,7 @@ $institutes = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <tbody class="divide-y divide-slate-200">
                         <?php if (empty($institutes)): ?>
                             <tr>
-                                <td colspan="3" class="px-6 py-8 text-center text-slate-400">
+                                <td colspan="4" class="px-6 py-8 text-center text-slate-400">
                                     No institutes found.
                                 </td>
                             </tr>
@@ -92,6 +94,9 @@ $institutes = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <tr class="hover:bg-slate-50/80 transition">
                                 <td class="px-6 py-4 font-bold text-slate-800 text-sm">
                                     <?= htmlspecialchars($i['name']) ?>
+                                </td>
+                                <td class="px-6 py-4 font-mono font-bold text-blue-700 text-xs">
+                                    <?= htmlspecialchars($i['code'] ?? '1R') ?>
                                 </td>
                                 <td class="px-6 py-4">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">

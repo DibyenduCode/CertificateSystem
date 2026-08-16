@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
     $photo = null;
     $gov_id_doc = null;
 
-    $studentNumbers = generateUniqueStudentNumbers($pdo, $issue);
+    $studentNumbers = generateUniqueStudentNumbers($pdo, $issue, $institute);
     $registration   = $studentNumbers['registration_number'];
     $certificate    = $studentNumbers['certificate_number'];
 
