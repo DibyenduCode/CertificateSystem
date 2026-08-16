@@ -146,7 +146,7 @@ if (!empty($father_name) && !str_starts_with($father_name, 'MR.') && !str_starts
             right: 20mm;
             width: 27mm;
             height: 27mm;
-            border: 2px solid #2563eb;
+            border: 2px solid #000000;
             border-radius: 4px;
             padding: 2px;
             background: #ffffff;
