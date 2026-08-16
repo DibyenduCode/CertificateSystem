@@ -33,23 +33,35 @@ $course              = strtoupper($course ?? ($data['course'] ?? ''));
 $institute           = strtoupper($institute ?? ($data['institute'] ?? ''));
 $theory_m = (int)($data['theory_marks'] ?? 0);
 $prac_m   = (int)($data['practical_marks'] ?? 0);
-$computed_grade = function_exists('calculateGrade') ? calculateGrade($theory_m, $prac_m) : 'A';
-$grade_input = trim($grade ?? ($data['grade'] ?? ''));
-if (empty($grade_input) || in_array(strtoupper($grade_input), ['PASS', 'A+', 'A', 'B', 'C', 'DEFAULT', 'EXCELLENT', 'VERY GOOD', 'GOOD', 'FAIR'])) {
-    $grade = $computed_grade;
-} else {
-    $grade = strtoupper($grade_input);
-}
-
-$grade_map = [
-    'EXCELLENT' => 'A+',
-    'VERY GOOD' => 'A',
-    'GOOD'      => 'B',
-    'FAIR'      => 'C',
-    'FAIL'      => 'F'
+$word_grade_map = [
+    'A+'        => 'EXCELLENT',
+    'A'         => 'VERY GOOD',
+    'B'         => 'GOOD',
+    'C'         => 'FAIR',
+    'F'         => 'FAIL',
+    'EXCELLENT' => 'EXCELLENT',
+    'VERY GOOD' => 'VERY GOOD',
+    'GOOD'      => 'GOOD',
+    'FAIR'      => 'FAIR',
+    'FAIL'      => 'FAIL'
 ];
-if (isset($grade_map[strtoupper($grade)])) {
-    $grade = $grade_map[strtoupper($grade)];
+
+$grade_input = strtoupper(trim($grade ?? ($data['grade'] ?? '')));
+if (!empty($grade_input) && isset($word_grade_map[$grade_input])) {
+    $grade = $word_grade_map[$grade_input];
+} else {
+    $total_pct = (($theory_m + $prac_m) / 200) * 100;
+    if ($total_pct >= 80) {
+        $grade = "EXCELLENT";
+    } elseif ($total_pct >= 70) {
+        $grade = "VERY GOOD";
+    } elseif ($total_pct >= 60) {
+        $grade = "GOOD";
+    } elseif ($total_pct >= 50) {
+        $grade = "FAIR";
+    } else {
+        $grade = "FAIL";
+    }
 }
 
 $start_d = $data['start_date'] ?? 'now';
