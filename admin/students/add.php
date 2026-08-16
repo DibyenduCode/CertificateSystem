@@ -34,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
     if (!$name) $errors[] = "Student full name is required.";
     if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = "Please enter a valid student email address.";
     if (!$father) $errors[] = "Father/Mother name is required.";
+    if (!$institute) $errors[] = "Please select an institute.";
     if (!$dob) $errors[] = "Date of birth is required.";
     if (!$start) $errors[] = "Course start date is required.";
     if (!$end) $errors[] = "Course end date is required.";
@@ -204,10 +205,13 @@ include __DIR__ . "/../partials/sidebar.php";
                     </div>
 
                     <div>
-                        <label class="block text-xs font-medium text-slate-700 mb-1">Institute *</label>
+                        <label class="block text-xs font-medium text-slate-700 mb-1">Select Institute *</label>
                         <select name="institute" required class="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
+                            <option value="" disabled <?= empty($_POST['institute']) ? 'selected' : '' ?>>-- Select Institute --</option>
                             <?php foreach ($institutes as $i): ?>
-                                <option value="<?= $i['id'] ?>" <?= ($_POST['institute'] ?? '') == $i['id'] ? 'selected' : '' ?>><?= htmlspecialchars($i['name']) ?></option>
+                                <option value="<?= $i['id'] ?>" <?= ($_POST['institute'] ?? '') == $i['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($i['name']) ?> (Code: <?= htmlspecialchars($i['code'] ?? '1R') ?>)
+                                </option>
                             <?php endforeach; ?>
                         </select>
                     </div>

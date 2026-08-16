@@ -238,10 +238,12 @@ include __DIR__ . "/../partials/sidebar.php";
                     </div>
 
                     <div>
-                        <label class="block text-xs font-medium text-slate-700 mb-1">Institute *</label>
+                        <label class="block text-xs font-medium text-slate-700 mb-1">Select Institute *</label>
                         <select name="institute" required class="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
                             <?php foreach ($institutes as $i): ?>
-                                <option value="<?= $i['id'] ?>" <?= $student['institute_id'] == $i['id'] ? 'selected' : '' ?>><?= htmlspecialchars($i['name']) ?></option>
+                                <option value="<?= $i['id'] ?>" <?= $student['institute_id'] == $i['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($i['name']) ?> (Code: <?= htmlspecialchars($i['code'] ?? '1R') ?>)
+                                </option>
                             <?php endforeach; ?>
                         </select>
                     </div>
