@@ -309,14 +309,15 @@ include __DIR__ . "/../partials/sidebar.php";
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
                     <div>
-                        <label class="block text-xs font-medium text-slate-700 mb-1">Final Grade (Auto: Excellent &ge;80%, Very Good &ge;70%, Good &ge;60%, Fair &ge;50%)</label>
+                        <label class="block text-xs font-medium text-slate-700 mb-1">Final Grade (Auto: A+ &ge;80%, A &ge;70%, B &ge;60%, C &ge;50%)</label>
                         <?php $curr_grade = strtoupper($student['grade'] ?? ''); ?>
                         <select name="grade" class="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
                             <option value="AUTO">-- Auto Calculate from Marks --</option>
-                            <option value="EXCELLENT" <?= $curr_grade === 'EXCELLENT' ? 'selected' : '' ?>>EXCELLENT (&ge;80%)</option>
-                            <option value="VERY GOOD" <?= $curr_grade === 'VERY GOOD' ? 'selected' : '' ?>>VERY GOOD (&ge;70%)</option>
-                            <option value="GOOD" <?= $curr_grade === 'GOOD' ? 'selected' : '' ?>>GOOD (&ge;60%)</option>
-                            <option value="FAIR" <?= $curr_grade === 'FAIR' ? 'selected' : '' ?>>FAIR (&ge;50%)</option>
+                            <option value="A+" <?= ($curr_grade === 'A+' || $curr_grade === 'EXCELLENT') ? 'selected' : '' ?>>A+ (&ge;80%)</option>
+                            <option value="A" <?= ($curr_grade === 'A' || $curr_grade === 'VERY GOOD') ? 'selected' : '' ?>>A (&ge;70%)</option>
+                            <option value="B" <?= ($curr_grade === 'B' || $curr_grade === 'GOOD') ? 'selected' : '' ?>>B (&ge;60%)</option>
+                            <option value="C" <?= ($curr_grade === 'C' || $curr_grade === 'FAIR') ? 'selected' : '' ?>>C (&ge;50%)</option>
+                            <option value="F" <?= ($curr_grade === 'F' || $curr_grade === 'FAIL') ? 'selected' : '' ?>>F (&lt;50%)</option>
                         </select>
                     </div>
 

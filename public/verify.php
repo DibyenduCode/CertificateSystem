@@ -158,7 +158,18 @@ if ($data && !empty($data['course_id'])) {
 
                         <div class="p-3.5 rounded-lg border border-slate-200 bg-white">
                             <span class="text-slate-400 font-semibold uppercase text-[10px] block">Final Grade</span>
-                            <span class="font-bold text-emerald-600 text-sm mt-0.5 block"><i class="fas fa-star mr-1"></i> Grade <?= htmlspecialchars($data['grade'] ?? 'Pass') ?></span>
+                            <?php
+                            $raw_grade = strtoupper(trim($data['grade'] ?? ''));
+                            $grade_map = [
+                                'EXCELLENT' => 'A+',
+                                'VERY GOOD' => 'A',
+                                'GOOD' => 'B',
+                                'FAIR' => 'C',
+                                'FAIL' => 'F'
+                            ];
+                            $display_grade = $grade_map[$raw_grade] ?? ($raw_grade ?: 'A+');
+                            ?>
+                            <span class="font-bold text-emerald-600 text-sm mt-0.5 block"><i class="fas fa-star mr-1"></i> Grade <?= htmlspecialchars($display_grade) ?></span>
                         </div>
 
                         <div class="p-3.5 rounded-lg border border-slate-200 bg-white">
@@ -187,22 +198,6 @@ if ($data && !empty($data['course_id'])) {
                             <span class="font-semibold text-slate-700 mt-0.5 block"><?= htmlspecialchars($data['issue_date'] ?? 'N/A') ?></span>
                         </div>
                     </div>
-
-                    <?php if (!empty($subjects)): ?>
-                        <!-- COURSE SUBJECTS COVERED -->
-                        <div class="p-4 rounded-xl border border-indigo-100 bg-indigo-50/50 space-y-2">
-                            <span class="text-indigo-900 font-bold uppercase text-[11px] flex items-center gap-1.5">
-                                <i class="fas fa-layer-group text-indigo-600"></i> Course Subjects &amp; Curriculum Covered
-                            </span>
-                            <div class="flex flex-wrap gap-2">
-                                <?php foreach ($subjects as $subj): ?>
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-indigo-900 border border-indigo-200 shadow-xs">
-                                        <i class="fas fa-check-circle text-emerald-500 text-[10px] mr-1.5"></i> <?= htmlspecialchars($subj) ?>
-                                    </span>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-                    <?php endif; ?>
 
                     <!-- DUAL DOWNLOAD ACTIONS SECTION -->
                     <div class="pt-4 border-t border-slate-200 space-y-3">

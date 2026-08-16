@@ -33,12 +33,23 @@ $course              = strtoupper($course ?? ($data['course'] ?? ''));
 $institute           = strtoupper($institute ?? ($data['institute'] ?? ''));
 $theory_m = (int)($data['theory_marks'] ?? 0);
 $prac_m   = (int)($data['practical_marks'] ?? 0);
-$computed_grade = function_exists('calculateGrade') ? calculateGrade($theory_m, $prac_m) : 'VERY GOOD';
+$computed_grade = function_exists('calculateGrade') ? calculateGrade($theory_m, $prac_m) : 'A';
 $grade_input = trim($grade ?? ($data['grade'] ?? ''));
-if (empty($grade_input) || in_array(strtoupper($grade_input), ['PASS', 'A+', 'A', 'B', 'C', 'DEFAULT'])) {
+if (empty($grade_input) || in_array(strtoupper($grade_input), ['PASS', 'A+', 'A', 'B', 'C', 'DEFAULT', 'EXCELLENT', 'VERY GOOD', 'GOOD', 'FAIR'])) {
     $grade = $computed_grade;
 } else {
     $grade = strtoupper($grade_input);
+}
+
+$grade_map = [
+    'EXCELLENT' => 'A+',
+    'VERY GOOD' => 'A',
+    'GOOD'      => 'B',
+    'FAIR'      => 'C',
+    'FAIL'      => 'F'
+];
+if (isset($grade_map[strtoupper($grade)])) {
+    $grade = $grade_map[strtoupper($grade)];
 }
 
 $start_d = $data['start_date'] ?? 'now';

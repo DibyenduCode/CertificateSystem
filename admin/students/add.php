@@ -277,13 +277,14 @@ include __DIR__ . "/../partials/sidebar.php";
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
                     <div>
-                        <label class="block text-xs font-medium text-slate-700 mb-1">Final Grade (Auto: Excellent &ge;80%, Very Good &ge;70%, Good &ge;60%, Fair &ge;50%)</label>
+                        <label class="block text-xs font-medium text-slate-700 mb-1">Final Grade (Auto: A+ &ge;80%, A &ge;70%, B &ge;60%, C &ge;50%)</label>
                         <select name="grade" class="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
                             <option value="AUTO">-- Auto Calculate from Marks --</option>
-                            <option value="EXCELLENT" <?= ($_POST['grade'] ?? '') === 'EXCELLENT' ? 'selected' : '' ?>>EXCELLENT (&ge;80%)</option>
-                            <option value="VERY GOOD" <?= ($_POST['grade'] ?? '') === 'VERY GOOD' ? 'selected' : '' ?>>VERY GOOD (&ge;70%)</option>
-                            <option value="GOOD" <?= ($_POST['grade'] ?? '') === 'GOOD' ? 'selected' : '' ?>>GOOD (&ge;60%)</option>
-                            <option value="FAIR" <?= ($_POST['grade'] ?? '') === 'FAIR' ? 'selected' : '' ?>>FAIR (&ge;50%)</option>
+                            <option value="A+" <?= ($_POST['grade'] ?? '') === 'A+' ? 'selected' : '' ?>>A+ (&ge;80%)</option>
+                            <option value="A" <?= ($_POST['grade'] ?? '') === 'A' ? 'selected' : '' ?>>A (&ge;70%)</option>
+                            <option value="B" <?= ($_POST['grade'] ?? '') === 'B' ? 'selected' : '' ?>>B (&ge;60%)</option>
+                            <option value="C" <?= ($_POST['grade'] ?? '') === 'C' ? 'selected' : '' ?>>C (&ge;50%)</option>
+                            <option value="F" <?= ($_POST['grade'] ?? '') === 'F' ? 'selected' : '' ?>>F (&lt;50%)</option>
                         </select>
                     </div>
 

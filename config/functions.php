@@ -498,43 +498,19 @@ function has_permission($module)
 
 
 /* ------------------------------------------------
-   Calculate Certificate Grade (Words: EXCELLENT, VERY GOOD, etc.)
-   Logic:
-   - Excellent >= 80%
-   - Very Good >= 70%
-   - Good      >= 60%
-   - Fair      >= 50%
------------------------------------------------- */
-
-function calculateCertificateGrade($theory_marks, $practical_marks, $max_marks = 200)
-{
-    $total = (int)$theory_marks + (int)$practical_marks;
-    if ($max_marks <= 0) {
-        $max_marks = 200;
-    }
-    $percentage = ($total / $max_marks) * 100;
-
-    if ($percentage >= 80) {
-        return "EXCELLENT";
-    } elseif ($percentage >= 70) {
-        return "VERY GOOD";
-    } elseif ($percentage >= 60) {
-        return "GOOD";
-    } elseif ($percentage >= 50) {
-        return "FAIR";
-    } else {
-        return "FAIL";
-    }
-}
-
-/* ------------------------------------------------
-   Calculate Marksheet Letter Grade (A+, A, B, C, F)
+   Calculate Grade (Letter Grade: A+, A, B, C, F)
    Logic:
    - A+ >= 80%
    - A  >= 70%
    - B  >= 60%
    - C  >= 50%
+   - F  < 50%
 ------------------------------------------------ */
+
+function calculateCertificateGrade($theory_marks, $practical_marks, $max_marks = 200)
+{
+    return calculateMarksheetGrade($theory_marks, $practical_marks, $max_marks);
+}
 
 function calculateMarksheetGrade($theory_marks, $practical_marks, $max_marks = 200)
 {
@@ -559,5 +535,5 @@ function calculateMarksheetGrade($theory_marks, $practical_marks, $max_marks = 2
 
 function calculateGrade($theory_marks, $practical_marks, $max_marks = 200)
 {
-    return calculateCertificateGrade($theory_marks, $practical_marks, $max_marks);
+    return calculateMarksheetGrade($theory_marks, $practical_marks, $max_marks);
 }
