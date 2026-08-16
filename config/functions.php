@@ -97,7 +97,7 @@ function generateCertificateNumber($pdo, $customSerial = null, $issueDate = null
     $year = getYearFromDate($issueDate);
     $length = defined('CERT_SERIAL_LENGTH') ? CERT_SERIAL_LENGTH : 7;
     $instCode = getInstituteCode($pdo, $instituteId);
-    $prefix = CERT_PREFIX . $instCode . $year . "C";
+    $prefix = CERT_PREFIX . "-" . $instCode . "-" . $year;
 
     if ($customSerial !== null) {
         $serial = str_pad($customSerial, $length, "0", STR_PAD_LEFT);
@@ -141,7 +141,7 @@ function generateUniqueStudentNumbers($pdo, $issueDate = null, $instituteId = nu
 
     $instCode   = getInstituteCode($pdo, $instituteId);
     $regPrefix  = INSTITUTE_PREFIX . $year;
-    $certPrefix = CERT_PREFIX . $instCode . $year . "C";
+    $certPrefix = CERT_PREFIX . "-" . $instCode . "-" . $year;
 
     $attempts = 0;
     $maxAttempts = 10000;
