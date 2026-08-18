@@ -227,10 +227,17 @@ $export_query = http_build_query(['search' => $search, 'course_id' => $course_id
                                             <i class="fas fa-file-alt text-xs"></i>
                                         </a>
 
-                                        <!-- Govt ID Document (PDF) -->
+                                         <!-- Govt ID Document (PDF) -->
                                         <?php if (!empty($row['gov_id_doc']) && file_exists(__DIR__ . '/../../uploads/' . $row['gov_id_doc'])): ?>
                                             <a href="<?= BASE_URL ?>/uploads/<?= htmlspecialchars($row['gov_id_doc']) ?>" target="_blank" class="p-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded transition" title="View Govt ID Document (PDF)">
                                                 <i class="fas fa-id-card text-xs"></i>
+                                            </a>
+                                        <?php endif; ?>
+
+                                        <!-- Resend Email button -->
+                                        <?php if (!empty($row['email'])): ?>
+                                            <a href="resend_email.php?id=<?= $row['id'] ?>&redirect=list" onclick="return confirm('Resend congratulation email to <?= addslashes($row['name']) ?> (<?= htmlspecialchars($row['email']) ?>)?')" class="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded transition" title="Resend Congratulation Email">
+                                                <i class="fas fa-paper-plane text-xs"></i>
                                             </a>
                                         <?php endif; ?>
 

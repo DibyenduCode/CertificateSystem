@@ -260,13 +260,19 @@ class SmtpMailer
         $headers = [];
         $headers[] = "MIME-Version: 1.0";
         $headers[] = "Content-Type: text/html; charset=UTF-8";
+        $headers[] = "Content-Transfer-Encoding: quoted-printable";
         $headers[] = "From: =?UTF-8?B?" . base64_encode($this->fromName) . "?= <{$this->fromEmail}>";
         $headers[] = "To: <{$toEmail}>";
         $headers[] = "Subject: =?UTF-8?B?" . base64_encode($subject) . "?=";
         $headers[] = "Date: " . date('r');
         $headers[] = "X-Mailer: CertiPortal SMTP Mailer v1.0";
 
-        $messageContent = implode("\r\n", $headers) . "\r\n\r\n" . $htmlBody . "\r\n.";
+        // Convert body to quoted-printable to guarantee lines <= 76 characters (RFC 2045 / RFC 5322 compliance)
+        $encodedBody = quoted_printable_encode($htmlBody);
+        $encodedBody = str_replace(["\r\n", "\r"], "\n", $encodedBody);
+        $encodedBody = str_replace("\n", "\r\n", $encodedBody);
+
+        $messageContent = implode("\r\n", $headers) . "\r\n\r\n" . $encodedBody . "\r\n.";
         $this->sendCommand($socket, $messageContent);
         $response = $this->readResponse($socket);
         $this->log("Send Content Response: " . trim($response));
@@ -302,9 +308,14 @@ class SmtpMailer
         $headers = [];
         $headers[] = "MIME-Version: 1.0";
         $headers[] = "Content-Type: text/html; charset=UTF-8";
+        $headers[] = "Content-Transfer-Encoding: quoted-printable";
         $headers[] = "From: " . sprintf("=?UTF-8?B?%s?= <%s>", base64_encode($this->fromName), $this->fromEmail);
 
-        $result = @mail($toEmail, $subject, $htmlBody, implode("\r\n", $headers));
+        $encodedBody = quoted_printable_encode($htmlBody);
+        $encodedBody = str_replace(["\r\n", "\r"], "\n", $encodedBody);
+        $encodedBody = str_replace("\n", "\r\n", $encodedBody);
+
+        $result = @mail($toEmail, $subject, $encodedBody, implode("\r\n", $headers));
         $this->log("Native mail() result: " . ($result ? "SUCCESS" : "FAILED"));
         return $result;
     }
@@ -374,9 +385,15 @@ function sendStudentCongratulationEmail($studentId, $pdo, $forceSend = false)
     $mailer = new SmtpMailer($smtp_settings);
     $success = $mailer->send($student['email'], $subject, $htmlBody);
 
+    $errorMsg = "Failed to send email. Check SMTP credentials.";
+    if (!$success && !empty($mailer->debugLog)) {
+        $lastLog = end($mailer->debugLog);
+        $errorMsg .= " (" . $lastLog . ")";
+    }
+
     return [
         'success'  => $success,
-        'message'  => $success ? "Congratulation email successfully sent to {$student['email']}" : "Failed to send email. Check SMTP credentials.",
+        'message'  => $success ? "Congratulation email successfully sent to {$student['email']}" : $errorMsg,
         'debugLog' => $mailer->debugLog
     ];
 }

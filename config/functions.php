@@ -175,8 +175,6 @@ function generateUniqueStudentNumbers($pdo, $issueDate = null, $instituteId = nu
 
 }
 
-
-
 /* ------------------------------------------------
    Gender Title
 ------------------------------------------------ */
@@ -537,4 +535,4 @@ function calculateMarksheetGrade($theory_marks, $practical_marks, $max_marks = 2
 function calculateGrade($theory_marks, $practical_marks, $max_marks = 200)
 {
     return calculateMarksheetGrade($theory_marks, $practical_marks, $max_marks);
-}
+}

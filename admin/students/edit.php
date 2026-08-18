@@ -23,17 +23,7 @@ $errors = [];
 if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
     $action = $_POST['action'] ?? 'update_student';
-
-    if ($action === 'resend_email') {
-        $mailResult = sendStudentCongratulationEmail($id, $pdo, true);
-        if ($mailResult['success']) {
-            set_flash('success', "Congratulation email successfully sent to {$student['email']}!");
-        } else {
-            set_flash('error', "Failed to send email: " . $mailResult['message']);
-        }
-        header("Location: edit.php?id=" . $id);
-        exit;
-    }
+    $send_email_chk = !empty($_POST['send_email']);
 
     $name         = trim($_POST['name'] ?? '');
     $email        = trim($_POST['email'] ?? '');
@@ -59,6 +49,10 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
     if (!$name) $errors[] = "Student name is required.";
     if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = "Please enter a valid student email address.";
     if (!$father) $errors[] = "Father name is required.";
+
+    if ($action === 'resend_email' && empty($email)) {
+        $errors[] = "Please enter a valid student email address to send the congratulation email.";
+    }
 
     $photo = $student['student_photo'];
     $gov_id_doc = $student['gov_id_doc'] ?? null;
@@ -130,9 +124,20 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
             $end, $issue, $grade, $theory_marks, $practical_marks, $photo, $gov_id_doc, $id
         ]);
 
-        set_flash('success', "Student {$name} updated successfully.");
-        header("Location: list.php");
-        exit;
+        if ($action === 'resend_email' || $send_email_chk) {
+            $mailResult = sendStudentCongratulationEmail($id, $pdo, true);
+            if ($mailResult['success']) {
+                set_flash('success', "Student details saved & congratulation email successfully sent to {$email}!");
+            } else {
+                set_flash('warning', "Student details saved, but email status: " . $mailResult['message']);
+            }
+            header("Location: edit.php?id=" . $id);
+            exit;
+        } else {
+            set_flash('success', "Student {$name} updated successfully.");
+            header("Location: list.php");
+            exit;
+        }
     }
 }
 
@@ -192,8 +197,12 @@ include __DIR__ . "/../partials/sidebar.php";
                         <div class="flex gap-2">
                             <input type="email" name="email" value="<?= htmlspecialchars($student['email'] ?? '') ?>" placeholder="e.g. student@example.com" class="w-full text-xs px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
                             <?php if (!empty($student['email'])): ?>
-                                <button type="submit" name="action" value="resend_email" onclick="return confirm('Resend congratulation email to <?= htmlspecialchars($student['email']) ?>?')" class="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-lg shadow-sm transition shrink-0 flex items-center gap-1.5" title="Resend Congratulation Email">
+                                <a href="resend_email.php?id=<?= $id ?>" onclick="return confirm('Resend congratulation email to <?= htmlspecialchars($student['email']) ?>?')" class="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-lg shadow-sm transition shrink-0 flex items-center gap-1.5" title="Resend Congratulation Email">
                                     <i class="fas fa-paper-plane text-blue-400"></i> Resend Email
+                                </a>
+                            <?php else: ?>
+                                <button type="submit" name="action" value="resend_email" class="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-lg shadow-sm transition shrink-0 flex items-center gap-1.5" title="Save & Send Email">
+                                    <i class="fas fa-paper-plane text-blue-400"></i> Save & Send Email
                                 </button>
                             <?php endif; ?>
                         </div>
@@ -335,11 +344,17 @@ include __DIR__ . "/../partials/sidebar.php";
             </div>
 
             <!-- SUBMIT BUTTON -->
-            <div class="pt-4 border-t border-slate-200 flex justify-end gap-3">
-                <a href="list.php" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition">Cancel</a>
-                <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition flex items-center gap-2">
-                    <i class="fas fa-save"></i> Save Changes
-                </button>
+            <div class="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <label class="inline-flex items-center text-xs text-slate-600 font-medium cursor-pointer">
+                    <input type="checkbox" name="send_email" value="1" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 mr-2">
+                    Send / Resend congratulation email to student upon saving
+                </label>
+                <div class="flex gap-3 ml-auto">
+                    <a href="list.php" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition">Cancel</a>
+                    <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition flex items-center gap-2">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
             </div>
 
         </form>
