@@ -134,10 +134,8 @@ function generateUniqueStudentNumbers($pdo, $issueDate = null, $instituteId = nu
 {
 
     $year = getYearFromDate($issueDate);
-    $length = max(
-        defined('REG_SERIAL_LENGTH') ? REG_SERIAL_LENGTH : 7,
-        defined('CERT_SERIAL_LENGTH') ? CERT_SERIAL_LENGTH : 7
-    );
+    $regLength  = defined('REG_SERIAL_LENGTH') ? REG_SERIAL_LENGTH : 7;
+    $certLength = defined('CERT_SERIAL_LENGTH') ? CERT_SERIAL_LENGTH : 7;
 
     $instCode   = getInstituteCode($pdo, $instituteId);
     $regPrefix  = INSTITUTE_PREFIX . $year;
@@ -147,9 +145,15 @@ function generateUniqueStudentNumbers($pdo, $issueDate = null, $instituteId = nu
     $maxAttempts = 10000;
 
     do {
-        $randSerial = generateRandomSerial($length);
-        $regNumber  = $regPrefix . $randSerial;
-        $certNumber = $certPrefix . $randSerial;
+        $regSerial  = generateRandomSerial($regLength);
+        $certSerial = generateRandomSerial($certLength);
+
+        while ($regSerial === $certSerial) {
+            $certSerial = generateRandomSerial($certLength);
+        }
+
+        $regNumber  = $regPrefix . $regSerial;
+        $certNumber = $certPrefix . $certSerial;
 
         $stmt = $pdo->prepare("
             SELECT COUNT(*) 
@@ -169,8 +173,9 @@ function generateUniqueStudentNumbers($pdo, $issueDate = null, $instituteId = nu
     return [
         'registration_number' => $regNumber,
         'certificate_number'  => $certNumber,
-        'serial'               => $randSerial,
-        'year'                 => $year
+        'reg_serial'          => $regSerial,
+        'cert_serial'         => $certSerial,
+        'year'                => $year
     ];
 
 }
